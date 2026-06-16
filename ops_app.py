@@ -235,7 +235,7 @@ with st.expander("📊 All Stages Breakdown", expanded=False):
                 unsafe_allow_html=True
             )
     with col_b:
-        st.dataframe(sdf_nonzero[["Stage", "Count"]].set_index("Stage"), use_container_width=True)
+        st.dataframe(sdf_nonzero[["Stage", "Count"]].set_index("Stage"), width='stretch')
 
 # ── Recent orders ─────────────────────────────────────────────────────────────
 st.markdown('<div class="section-title">Recent Orders (Last 20)</div>', unsafe_allow_html=True)
@@ -254,7 +254,7 @@ def highlight_status(val):
 
 st.dataframe(
     recent.style.map(highlight_status, subset=["Order Status"] if "Order Status" in recent.columns else []),
-    use_container_width=True,
+    width='stretch',
     height=420,
 )
 

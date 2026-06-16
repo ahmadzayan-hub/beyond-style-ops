@@ -59,7 +59,7 @@ show_cols = [c for c in [
     "Order Status", "Shipment Label Status",
 ] if c in filtered.columns]
 
-st.dataframe(filtered[show_cols].reset_index(drop=True), use_container_width=True, height=240)
+st.dataframe(filtered[show_cols].reset_index(drop=True), width='stretch', height=240)
 
 # ── Label generator ───────────────────────────────────────────────────────────
 st.markdown("---")

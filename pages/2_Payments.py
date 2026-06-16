@@ -81,7 +81,7 @@ if not show_df.empty and "Payment Status" in show_df.columns:
 st.markdown("---")
 
 # ── Table ─────────────────────────────────────────────────────────────────────
-st.dataframe(show_df.reset_index(drop=True), use_container_width=True, height=300)
+st.dataframe(show_df.reset_index(drop=True), width='stretch', height=300)
 
 # ── Payment update form ───────────────────────────────────────────────────────
 st.markdown("---")

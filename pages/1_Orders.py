@@ -92,7 +92,7 @@ def color_status(val):
 st.dataframe(
     display_df.style.map(color_status,
         subset=[c for c in ["Order Status", "Payment Status"] if c in display_df.columns]),
-    use_container_width=True,
+    width='stretch',
     height=340,
 )
 

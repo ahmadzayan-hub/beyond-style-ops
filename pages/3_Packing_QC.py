@@ -80,7 +80,7 @@ show_cols = [c for c in [
     "Colour / Design", "Quantity", "Payment Status",
     "Packing QC Status", "Order Status", "Dispatch Gate Status",
 ] if c in filtered.columns]
-st.dataframe(filtered[show_cols].reset_index(drop=True), use_container_width=True, height=280)
+st.dataframe(filtered[show_cols].reset_index(drop=True), width='stretch', height=280)
 
 # ── QC update form ────────────────────────────────────────────────────────────
 st.markdown("---")
