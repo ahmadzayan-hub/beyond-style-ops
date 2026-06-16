@@ -22,14 +22,11 @@ def load():
     df = get_master_orders()
     if df.empty:
         return df
-    # QC view = orders that have reached payment confirmation
-    paid = ["Paid Online", "COD Confirmed", "QC Pending", "Product Photo Sent",
-            "Customer Approved", "Packed", "Shipment Label Ready", "Courier Booked",
-            "Handed to Courier", "Out for Delivery", "Delivered", "POD Received",
-            "Review Requested", "Review Received", "Closed Successfully"]
-    if "Payment Status" in df.columns:
-        return df[df["Payment Status"].isin(["Paid Online", "COD Confirmed"]) |
-                  df["Order Status"].isin(paid)].copy()
+    # QC is available from the moment an order is received — no payment gate.
+    # COD customers pay on delivery; online customers may approve the product photo before paying.
+    exclude = ["Closed Successfully", "Cancelled", "Issue / Return"]
+    if "Order Status" in df.columns:
+        return df[~df["Order Status"].isin(exclude)].copy()
     return df
 
 with st.spinner("Loading..."):
@@ -123,18 +120,13 @@ qa1, qa2, qa3, qa4 = st.columns(4)
 
 def _qc_action(label, updates, col):
     if col.button(label, key=f"qca_{label}_{sel_id}"):
-        # Validate payment first
-        ps = str(order_row.get("Payment Status",""))
-        if ps not in ["Paid Online","COD Confirmed"]:
-            st.error("❌ Payment must be Paid Online or COD Confirmed before QC.")
+        ok = update_master_order(sel_id, updates)
+        if ok:
+            st.success(f"✅ {label}")
+            st.cache_data.clear()
+            st.rerun()
         else:
-            ok = update_master_order(sel_id, updates)
-            if ok:
-                st.success(f"✅ {label}")
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                st.error("Update failed.")
+            st.error("Update failed.")
 
 _qc_action("📸 Photo Sent",
     {"Packing QC Status":"Photo Sent to Customer","Order Status":"Product Photo Sent"}, qa1)
