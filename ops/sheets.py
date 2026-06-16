@@ -72,16 +72,55 @@ def _now() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
 
+def _ws_to_df(ws, head_row: int = 1) -> pd.DataFrame:
+    """Read a worksheet into a DataFrame without crashing on duplicate/empty headers.
+
+    Uses get_all_values() instead of get_all_records() so blank or duplicate
+    header columns are handled safely by deduplicating them with a numeric suffix.
+    """
+    all_vals = ws.get_all_values()
+    if not all_vals or len(all_vals) < head_row:
+        return pd.DataFrame()
+
+    raw_headers = all_vals[head_row - 1]
+    data_rows   = all_vals[head_row:]
+
+    # Deduplicate headers: blank cols become _col_N, dupes get _2, _3 ...
+    seen: dict = {}
+    headers = []
+    for i, h in enumerate(raw_headers):
+        h = h.strip()
+        if not h:
+            h = f"_col_{i + 1}"
+        if h in seen:
+            seen[h] += 1
+            h = f"{h}_{seen[h]}"
+        else:
+            seen[h] = 1
+        headers.append(h)
+
+    if not data_rows:
+        return pd.DataFrame(columns=headers)
+
+    # Pad or trim each row to match header count
+    n = len(headers)
+    padded = [row[:n] + [""] * max(0, n - len(row)) for row in data_rows]
+
+    df = pd.DataFrame(padded, columns=headers)
+    # Drop rows that are entirely empty
+    df = df[df.apply(lambda r: any(str(v).strip() for v in r), axis=1)].reset_index(drop=True)
+    return df
+
+
 # ── Master Orders ─────────────────────────────────────────────────────────────
 
 def get_master_orders() -> pd.DataFrame:
-    ws      = _ws("Master Orders")
-    records = ws.get_all_records(head=3, default_blank="")
-    df      = pd.DataFrame(records)
+    ws = _ws("Master Orders")
+    df = _ws_to_df(ws, head_row=3)
     if df.empty:
         return df
-    # Drop completely empty rows
-    df = df[df["Order ID"].astype(str).str.strip() != ""]
+    if "Order ID" in df.columns:
+        df = df[df["Order ID"].astype(str).str.strip() != ""]
     return df
 
 
@@ -155,12 +194,13 @@ def get_dashboard_counts(df: pd.DataFrame = None) -> dict:
 # ── Payments ──────────────────────────────────────────────────────────────────
 
 def get_payments() -> pd.DataFrame:
-    ws      = _ws("Payments")
-    records = ws.get_all_records(default_blank="")
-    df      = pd.DataFrame(records)
+    ws = _ws("Payments")
+    df = _ws_to_df(ws)
     if df.empty:
         return df
-    return df[df["Order ID"].astype(str).str.strip() != ""]
+    if "Order ID" in df.columns:
+        df = df[df["Order ID"].astype(str).str.strip() != ""]
+    return df
 
 
 def update_payment(order_id: str, updates: dict) -> bool:
@@ -192,12 +232,10 @@ def update_payment(order_id: str, updates: dict) -> bool:
 
 def get_packing_qc() -> pd.DataFrame:
     try:
-        ws      = _ws("Packing QC")
-        records = ws.get_all_records(default_blank="")
-        df      = pd.DataFrame(records)
+        ws = _ws("Packing QC")
+        df = _ws_to_df(ws)
         if df.empty:
             return df
-        # find Order ID column
         oid_col = next((c for c in df.columns if "order" in c.lower() and "id" in c.lower()), None)
         if oid_col:
             df = df[df[oid_col].astype(str).str.strip() != ""]
@@ -240,12 +278,13 @@ def update_packing_qc(order_id: str, updates: dict) -> bool:
 
 def get_courier_tracking() -> pd.DataFrame:
     try:
-        ws      = _ws("Courier Tracking")
-        records = ws.get_all_records(default_blank="")
-        df      = pd.DataFrame(records)
+        ws = _ws("Courier Tracking")
+        df = _ws_to_df(ws)
         if df.empty:
             return df
-        return df[df["Order ID"].astype(str).str.strip() != ""]
+        if "Order ID" in df.columns:
+            df = df[df["Order ID"].astype(str).str.strip() != ""]
+        return df
     except Exception:
         return pd.DataFrame()
 
@@ -277,10 +316,14 @@ def update_courier(order_id: str, updates: dict) -> bool:
 
 def get_product_catalog() -> pd.DataFrame:
     try:
-        ws      = _ws("Product Catalog")
-        records = ws.get_all_records(default_blank="")
-        df      = pd.DataFrame(records)
-        return df[df["Product Name EN"].astype(str).str.strip() != ""] if not df.empty else df
+        ws = _ws("Product Catalog")
+        df = _ws_to_df(ws)
+        if df.empty:
+            return df
+        col = next((c for c in df.columns if "product name" in c.lower() and "en" in c.lower()), None)
+        if col:
+            df = df[df[col].astype(str).str.strip() != ""]
+        return df
     except Exception:
         return pd.DataFrame()
 
@@ -289,9 +332,13 @@ def get_product_catalog() -> pd.DataFrame:
 
 def get_customer_db() -> pd.DataFrame:
     try:
-        ws      = _ws("Customer DB")
-        records = ws.get_all_records(default_blank="")
-        df      = pd.DataFrame(records)
-        return df[df["Customer Name"].astype(str).str.strip() != ""] if not df.empty else df
+        ws = _ws("Customer DB")
+        df = _ws_to_df(ws)
+        if df.empty:
+            return df
+        col = next((c for c in df.columns if "customer" in c.lower() and "name" in c.lower()), None)
+        if col:
+            df = df[df[col].astype(str).str.strip() != ""]
+        return df
     except Exception:
         return pd.DataFrame()
