@@ -1,0 +1,17 @@
+{
+  "_README": "Delivery fees in AED. All fees updated to AED 25 flat rate per Beyond Style Delivery Policy effective 2026-05-31 (Halan / approved courier). Previous area-specific fees (JVC AED 15, Al Taawun AED 20) are superseded. Do NOT use AED 30 for new orders.",
+  "_policy_update": "2026-05-31: Standard UAE delivery fee set to AED 25 flat across all emirates. Source: Delivery Policy sheet, 01/06/2026 update.",
+  "_status_legend": {
+    "confirmed": "Verified against real Beyond Style delivery policy. Safe to use.",
+    "placeholder": "Estimate only. Edit before production use."
+  },
+  "emirates": {
+    "Dubai":          { "default_fee": 25, "status": "confirmed", "areas": {} },
+    "Sharjah":        { "default_fee": 25, "status": "confirmed", "areas": {} },
+    "Ajman":          { "default_fee": 25, "status": "confirmed", "areas": {} },
+    "Umm Al Quwain":  { "default_fee": 25, "status": "confirmed", "areas": {} },
+    "Ras Al Khaimah": { "default_fee": 25, "status": "confirmed", "areas": {} },
+    "Fujairah":       { "default_fee": 25, "status": "confirmed", "areas": {} },
+    "Abu Dhabi":      { "default_fee": 25, "status": "confirmed", "areas": {} }
+  }
+}

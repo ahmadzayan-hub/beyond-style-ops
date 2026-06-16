@@ -1,0 +1,10 @@
+{
+  "_README": "WhatsApp message templates. Placeholders in {curly_braces} are filled by execution/draft_whatsapp.py. Edit the wording freely; keep the placeholder names.",
+  "templates": {
+    "confirm_order": "Hello {customer_name}, thank you for your order with Beyond Style. Please confirm the details below so we can prepare your delivery:\n\nItem: {product} ({colour}) x{quantity}\nItem price: AED {unit_price}\nDelivery to: {area}, {emirate}\nDelivery fee: AED {delivery_fee}\nTotal: AED {total}\n\nKindly reply CONFIRM to proceed, or tell us any correction.",
+    "request_payment_proof": "Hello {customer_name}, your order is reserved. As payment is by bank transfer, please send a screenshot of the transfer of AED {total} so we can release your order for delivery. Thank you.",
+    "request_correct_phone": "Hello, this is Beyond Style. We could not verify a valid UAE mobile number for your delivery. Could you please reply with your correct mobile number (for example 05X XXX XXXX) so the courier can reach you?",
+    "confirm_address_change": "Hello {customer_name}, we noticed your delivery area is now {area}, {emirate}. The delivery fee for this area is AED {delivery_fee}, so your new total is AED {total} (was AED {old_total}). Please reply CONFIRM to accept the updated total.",
+    "dispatch_notice": "Good news {customer_name}, your Beyond Style order is verified and being prepared for dispatch to {area}, {emirate}. We will share tracking details shortly."
+  }
+}

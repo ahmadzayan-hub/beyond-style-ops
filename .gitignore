@@ -1,0 +1,27 @@
+# Secrets — never commit
+.env
+*.json.key
+*-token.json
+*-oauth.json
+*-service-account.json
+client_secret_*.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Data / output
+data/*.csv
+data/*.xlsx

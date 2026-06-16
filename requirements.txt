@@ -1,0 +1,16 @@
+# Beyond Style Agent — Python dependencies
+# Install all: pip install -r requirements.txt
+
+# Streamlit dashboard
+streamlit>=1.35.0
+
+# Google Sheets integration
+gspread>=6.0.0
+google-auth>=2.0.0
+google-auth-oauthlib>=1.0.0
+
+# Data
+pandas>=2.0.0
+
+# Load .env secrets (local only — Streamlit Cloud uses st.secrets)
+python-dotenv>=1.0.0

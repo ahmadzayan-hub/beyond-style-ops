@@ -1,0 +1,291 @@
+{
+  "_README": "Product catalogue. Prices in AED (Selling Price). Colours lists confirmed variants — empty means colour is subject to stock/TBC; verifier skips the colour check when colours is empty. Status: confirmed = verified against real order; active = live product, colour/stock pending confirmation; imported = sourced product, colour TBC from real photo.",
+  "products": [
+    {
+      "sku": "LEGACY",
+      "name": "Gold Layered Chain Necklace",
+      "category": "Necklace",
+      "unit_price": 89,
+      "colours": ["Gold"],
+      "status": "confirmed"
+    },
+    {
+      "sku": "LEGACY",
+      "name": "Pearl Drop Earrings",
+      "category": "Earrings",
+      "unit_price": 65,
+      "colours": ["Pearl"],
+      "status": "confirmed"
+    },
+    {
+      "sku": "BSU-MA-BR",
+      "name": "Masha'Allah Bracelet",
+      "category": "Bracelet",
+      "unit_price": 79,
+      "colours": [],
+      "status": "active",
+      "notes": "Hero product. Customisable strap colour and writing tone depending on stock. Do not claim real gold, real silver, waterproof or anti-tarnish."
+    },
+    {
+      "sku": "BSU-HOB-NK",
+      "name": "Hob Necklace",
+      "category": "Necklace",
+      "unit_price": 59,
+      "colours": ["Silver", "Gold"],
+      "status": "active",
+      "notes": "Add-on price AED 49 only when attached to a bracelet order. Do not claim original silver."
+    },
+    {
+      "sku": "BSU-QH-BR",
+      "name": "Qul Huwa Allah Ahad Bracelet",
+      "category": "Bracelet",
+      "unit_price": 79,
+      "colours": [],
+      "status": "active",
+      "notes": "Confirm actual photo before payment."
+    },
+    {
+      "sku": "BSU-PAL-BR",
+      "name": "Palestine Bracelet",
+      "category": "Bracelet",
+      "unit_price": 79,
+      "colours": [],
+      "status": "active",
+      "notes": "Confirm actual photo before payment."
+    },
+    {
+      "sku": "BSU-NK-001",
+      "name": "Necklace 624-10491-48",
+      "category": "Necklace",
+      "unit_price": 39,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-002",
+      "name": "Necklace 624-10486-40",
+      "category": "Necklace",
+      "unit_price": 39,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-003",
+      "name": "Necklace 592-9709-72",
+      "category": "Necklace",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-004",
+      "name": "Necklace 625-10572-72",
+      "category": "Necklace",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-005",
+      "name": "Necklace 624-10352-52",
+      "category": "Necklace",
+      "unit_price": 39,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-006",
+      "name": "Necklace 79-2623-100",
+      "category": "Necklace",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-007",
+      "name": "Necklace 581-9556-100",
+      "category": "Necklace",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-008",
+      "name": "Bracelet AB-785-12727-60",
+      "category": "Bracelet",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-009",
+      "name": "Bracelet 781-12667-112-M",
+      "category": "Bracelet",
+      "unit_price": 79,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-AN-010",
+      "name": "Anklet Y-727-12211-28",
+      "category": "Anklet",
+      "unit_price": 39,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-011",
+      "name": "Bracelet W-728-12233-60",
+      "category": "Bracelet",
+      "unit_price": 59,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-012",
+      "name": "Bracelet W-728-12232-60",
+      "category": "Bracelet",
+      "unit_price": 59,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-013",
+      "name": "Bracelet TU-729-12290-72",
+      "category": "Bracelet",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-014",
+      "name": "Bracelet 581-9504-88",
+      "category": "Bracelet",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-015",
+      "name": "Bracelet D-793-12900-48",
+      "category": "Bracelet",
+      "unit_price": 39,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-016",
+      "name": "Necklace 359-6724-72",
+      "category": "Necklace",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-017",
+      "name": "Necklace 101-2949-60",
+      "category": "Necklace",
+      "unit_price": 49,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-018",
+      "name": "Bracelet 113-3187-40",
+      "category": "Bracelet",
+      "unit_price": 39,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-PD-019",
+      "name": "Pendant 267-5352-52",
+      "category": "Pendant",
+      "unit_price": 69,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-HS-020",
+      "name": "Half Set 266-5347-168",
+      "category": "Half Set",
+      "unit_price": 79,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-021",
+      "name": "Bracelet 462-7822-88",
+      "category": "Bracelet",
+      "unit_price": 154,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-HS-022",
+      "name": "Half Set 465-7941-92",
+      "category": "Half Set",
+      "unit_price": 79,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BG-023",
+      "name": "Bangle 133-3465-76",
+      "category": "Bangle",
+      "unit_price": 65,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-NK-024",
+      "name": "Necklace 357-6695-52",
+      "category": "Necklace",
+      "unit_price": 79,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-025",
+      "name": "Bracelet 301-5806-40",
+      "category": "Bracelet",
+      "unit_price": 39,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    },
+    {
+      "sku": "BSU-BR-026",
+      "name": "Bracelet TU-729-12308-52",
+      "category": "Bracelet",
+      "unit_price": 79,
+      "colours": [],
+      "status": "imported",
+      "notes": "Colours TBC from real product photo. Do not claim real gold, silver, waterproof, or anti-tarnish."
+    }
+  ]
+}

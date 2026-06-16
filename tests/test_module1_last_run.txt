@@ -1,0 +1,315 @@
+======================================================================
+PASS  M1-01  Bank Transfer pending — Needs Correction
+  expected : Needs Correction / escalate=True
+  got      : Needs Correction / escalate=True
+----------------------------------------------------------------------
+[DATA CHECK]
+  - customer name: present
+  - phone: valid
+  - emirate: present
+  - area: present
+  - address: present
+  - product: present
+  - colour: present
+  - quantity: present
+  - unit price: present
+  - delivery fee: present
+  - total: present
+  - payment method: present
+  - payment status: present
+
+[MISSING OR RISKY INFO]
+  - Google Maps link / live location not provided — request from customer.
+  - Bank Transfer requires a payment screenshot before packing. Current status: 'Pending'.
+  - Customer has not yet confirmed the order details.
+
+[CUSTOMER MESSAGE DRAFT]
+Hi Fatima Al Marri, thanks for your order! 🌟
+
+To make sure the courier can find you, please:
+1. Send your full address (building/villa number, street, landmark)
+2. Share your Google Maps location or WhatsApp live location
+
+Beyond Style UAE 💛
+
+───────────────────────────────────
+
+هلا Fatima Al Marri، شكراً لطلبك! 🌟
+
+عشان نضمن وصول المندوب، ممكن:
+1. ترسل/ترسلين العنوان الكامل (رقم الفيلا/المبنى، الشارع، الميلاند)
+2. تشارك/تشاركين اللوكيشن على Google Maps أو اللوكيشن المباشر من واتساب
+
+Beyond Style UAE 💛
+
+[OPERATIONAL STATUS] Needs Correction
+[RISK LEVEL]         Medium
+[NEXT ACTION]        Request full address and Google Maps location from the customer.
+[TRACKER UPDATE]     Set status to 'Needs Correction', risk 'Medium', escalation YES.
+[ESCALATION?]        YES
+
+======================================================================
+PASS  M1-02  Invalid phone — High Risk / Do Not Pack
+  expected : High Risk / Do Not Pack / escalate=True
+  got      : High Risk / Do Not Pack / escalate=True
+----------------------------------------------------------------------
+[DATA CHECK]
+  - customer name: present
+  - phone: invalid
+  - emirate: present
+  - area: present
+  - address: present
+  - product: present
+  - colour: present
+  - quantity: present
+  - unit price: present
+  - delivery fee: present
+  - total: present
+  - payment method: present
+  - payment status: present
+
+[MISSING OR RISKY INFO]
+  - Phone: UAE mobile must be 10 digits (05XXXXXXXX). Got 6 digits.
+  - Google Maps link / live location not provided — request from customer.
+
+[CUSTOMER MESSAGE DRAFT]
+Hi, this is Beyond Style UAE 👋
+
+We couldn't verify a valid UAE mobile number for your delivery.
+Could you please reply with your correct number? (e.g. 05X XXX XXXX)
+
+The courier needs a UAE number to reach you on delivery day.
+Beyond Style UAE 💛
+
+───────────────────────────────────
+
+هلا، معك فريق Beyond Style UAE 👋
+
+ما قدرنا نتحقق من رقم موبايل إماراتي صالح للتوصيل.
+ممكن ترسل/ترسلين رقمك الصحيح؟ (مثال: 05X XXX XXXX)
+
+المندوب يحتاج رقم إماراتي للتواصل معك يوم التوصيل.
+Beyond Style UAE 💛
+
+[OPERATIONAL STATUS] High Risk / Do Not Pack
+[RISK LEVEL]         High
+[NEXT ACTION]        Do not pack. Contact the customer for a correct UAE mobile number.
+[TRACKER UPDATE]     Set status to 'High Risk / Do Not Pack', risk 'High', escalation YES.
+[ESCALATION?]        YES
+
+======================================================================
+PASS  M1-03  Wrong delivery fee — Needs Correction
+  expected : Needs Correction / escalate=True
+  got      : Needs Correction / escalate=True
+----------------------------------------------------------------------
+[DATA CHECK]
+  - customer name: present
+  - phone: valid
+  - emirate: present
+  - area: present
+  - address: present
+  - product: present
+  - colour: present
+  - quantity: present
+  - unit price: present
+  - delivery fee: present
+  - total: present
+  - payment method: present
+  - payment status: present
+
+[MISSING OR RISKY INFO]
+  - Google Maps link / live location not provided — request from customer.
+  - Delivery fee should be AED 25 for Abu Dhabi (default), not AED 15.
+  - Total should be AED 104.0 (AED 79.0 item + AED 25 delivery), not AED 94.
+  - Customer has not yet confirmed the order details.
+
+[CUSTOMER MESSAGE DRAFT]
+Hi Sarah Al Zaabi, thanks for your order! 🌟
+
+To make sure the courier can find you, please:
+1. Send your full address (building/villa number, street, landmark)
+2. Share your Google Maps location or WhatsApp live location
+
+Beyond Style UAE 💛
+
+───────────────────────────────────
+
+هلا Sarah Al Zaabi، شكراً لطلبك! 🌟
+
+عشان نضمن وصول المندوب، ممكن:
+1. ترسل/ترسلين العنوان الكامل (رقم الفيلا/المبنى، الشارع، الميلاند)
+2. تشارك/تشاركين اللوكيشن على Google Maps أو اللوكيشن المباشر من واتساب
+
+Beyond Style UAE 💛
+
+[OPERATIONAL STATUS] Needs Correction
+[RISK LEVEL]         Medium
+[NEXT ACTION]        Request full address and Google Maps location from the customer.
+[TRACKER UPDATE]     Set status to 'Needs Correction', risk 'Medium', escalation YES.
+[ESCALATION?]        YES
+
+======================================================================
+PASS  M1-04  Missing address — High Risk / Do Not Pack
+  expected : High Risk / Do Not Pack / escalate=True
+  got      : High Risk / Do Not Pack / escalate=True
+----------------------------------------------------------------------
+[DATA CHECK]
+  - customer name: present
+  - phone: valid
+  - emirate: present
+  - area: missing
+  - address: missing
+  - product: present
+  - colour: present
+  - quantity: present
+  - unit price: present
+  - delivery fee: present
+  - total: present
+  - payment method: present
+  - payment status: present
+
+[MISSING OR RISKY INFO]
+  - Missing field: area.
+  - Missing field: address.
+  - Area is missing.
+  - Full address is missing.
+  - Google Maps link / live location not provided — request from customer.
+
+[CUSTOMER MESSAGE DRAFT]
+Hi Mariam Al Noor, thanks for your order with Beyond Style UAE! 🌟
+
+Before we pack, please confirm:
+
+📱 Mobile: 0561234567 — can receive courier calls
+📍 Address: [address], [area], Ajman
+🗺 Location: [Share your Google Maps / live location here]
+🛍 Product: Hob Necklace (Gold) × 2
+💰 Total: AED 143.0 (AED 59 × 2 + AED 25 delivery)
+
+We'll hold your item for 24 hours.
+Please reply CONFIRM if everything is correct, or send any update needed.
+
+Thanks, Beyond Style UAE 💛
+
+───────────────────────────────────
+
+هلا Mariam Al Noor، شكراً لطلبك من Beyond Style UAE! 🌟
+
+قبل ما نجهز الطلب، ممكن تأكدين/تأكد:
+
+📱 رقم الموبايل: 0561234567 — يستقبل اتصال المندوب
+📍 العنوان: [address], [area], Ajman
+🗺 اللوكيشن: [Share your Google Maps / live location here]
+🛍 المنتج: Hob Necklace (Gold) × 2
+💰 المبلغ: AED 143.0 (AED 59 × 2 + AED 25 توصيل)
+
+بنحجز القطعة لك لمدة 24 ساعة.
+يرجى الرد بكلمة CONFIRM إذا كل التفاصيل صحيحة، أو إرسال أي تعديل.
+
+شكراً، Beyond Style UAE 💛
+
+[OPERATIONAL STATUS] High Risk / Do Not Pack
+[RISK LEVEL]         High
+[NEXT ACTION]        Send confirmation message and wait for CONFIRM reply.
+[TRACKER UPDATE]     Set status to 'High Risk / Do Not Pack', risk 'High', escalation YES.
+[ESCALATION?]        YES
+
+======================================================================
+PASS  M1-05  COD confirmed — Verified
+  expected : Verified / escalate=False
+  got      : Verified / escalate=False
+----------------------------------------------------------------------
+[DATA CHECK]
+  - customer name: present
+  - phone: valid
+  - emirate: present
+  - area: present
+  - address: present
+  - product: present
+  - colour: present
+  - quantity: present
+  - unit price: present
+  - delivery fee: present
+  - total: present
+  - payment method: present
+  - payment status: present
+
+[MISSING OR RISKY INFO]
+  - Google Maps link / live location not provided — request from customer.
+
+[CUSTOMER MESSAGE DRAFT]
+Hi Noura Al Rashid, thanks for your order! 🌟
+
+To make sure the courier can find you, please:
+1. Send your full address (building/villa number, street, landmark)
+2. Share your Google Maps location or WhatsApp live location
+
+Beyond Style UAE 💛
+
+───────────────────────────────────
+
+هلا Noura Al Rashid، شكراً لطلبك! 🌟
+
+عشان نضمن وصول المندوب، ممكن:
+1. ترسل/ترسلين العنوان الكامل (رقم الفيلا/المبنى، الشارع، الميلاند)
+2. تشارك/تشاركين اللوكيشن على Google Maps أو اللوكيشن المباشر من واتساب
+
+Beyond Style UAE 💛
+
+[OPERATIONAL STATUS] Verified
+[RISK LEVEL]         Low
+[NEXT ACTION]        Request full address and Google Maps location from the customer.
+[TRACKER UPDATE]     Set status to 'Verified', risk 'Low', escalation no.
+[ESCALATION?]        No
+
+======================================================================
+PASS  M1-06  COD not yet confirmed — Awaiting Confirmation
+  expected : Awaiting Confirmation / escalate=False
+  got      : Awaiting Confirmation / escalate=False
+----------------------------------------------------------------------
+[DATA CHECK]
+  - customer name: present
+  - phone: valid
+  - emirate: present
+  - area: present
+  - address: present
+  - product: present
+  - colour: present
+  - quantity: present
+  - unit price: present
+  - delivery fee: present
+  - total: present
+  - payment method: present
+  - payment status: present
+
+[MISSING OR RISKY INFO]
+  - Google Maps link / live location not provided — request from customer.
+  - Customer has not yet confirmed the order details.
+
+[CUSTOMER MESSAGE DRAFT]
+Hi Reem Al Blooshi, thanks for your order! 🌟
+
+To make sure the courier can find you, please:
+1. Send your full address (building/villa number, street, landmark)
+2. Share your Google Maps location or WhatsApp live location
+
+Beyond Style UAE 💛
+
+───────────────────────────────────
+
+هلا Reem Al Blooshi، شكراً لطلبك! 🌟
+
+عشان نضمن وصول المندوب، ممكن:
+1. ترسل/ترسلين العنوان الكامل (رقم الفيلا/المبنى، الشارع، الميلاند)
+2. تشارك/تشاركين اللوكيشن على Google Maps أو اللوكيشن المباشر من واتساب
+
+Beyond Style UAE 💛
+
+[OPERATIONAL STATUS] Awaiting Confirmation
+[RISK LEVEL]         Medium
+[NEXT ACTION]        Request full address and Google Maps location from the customer.
+[TRACKER UPDATE]     Set status to 'Awaiting Confirmation', risk 'Medium', escalation no.
+[ESCALATION?]        No
+
+======================================================================
+MODULE 1 RESULT: 6/6 cases passed
