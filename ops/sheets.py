@@ -35,21 +35,24 @@ def _connect():
 
     sheet_id = _get_secret("GOOGLE_SHEETS_ID") or _SHEET_ID
 
-    # Try Streamlit Cloud path: token JSON embedded in secrets
+    # Try Streamlit Cloud path: individual fields stored under [google_oauth] section
     try:
         import streamlit as st
-        token_json = st.secrets.get("GOOGLE_OAUTH_TOKEN_JSON", "")
-        if token_json and token_json.strip():
-            import gspread
-            from google.oauth2.credentials import Credentials
-            token_data = json.loads(token_json)
+        import gspread
+        from google.oauth2.credentials import Credentials
+
+        oauth = st.secrets.get("google_oauth", {})
+        if oauth and oauth.get("refresh_token"):
+            scopes = oauth.get("scopes", ["https://www.googleapis.com/auth/spreadsheets"])
+            if isinstance(scopes, str):
+                scopes = [s.strip() for s in scopes.split(",")]
             creds = Credentials(
-                token=token_data.get("token"),
-                refresh_token=token_data.get("refresh_token"),
-                token_uri=token_data.get("token_uri", "https://oauth2.googleapis.com/token"),
-                client_id=token_data.get("client_id"),
-                client_secret=token_data.get("client_secret"),
-                scopes=token_data.get("scopes", ["https://www.googleapis.com/auth/spreadsheets"]),
+                token=oauth.get("token", ""),
+                refresh_token=oauth["refresh_token"],
+                token_uri=oauth.get("token_uri", "https://oauth2.googleapis.com/token"),
+                client_id=oauth["client_id"],
+                client_secret=oauth["client_secret"],
+                scopes=scopes,
             )
             _client = gspread.authorize(creds)
             _wb = _client.open_by_key(sheet_id)
