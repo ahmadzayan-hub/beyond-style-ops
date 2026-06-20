@@ -189,12 +189,15 @@ else:
         if col.button(action, key=f"act_{action}_{selected_id}"):
             updates = {}
 
-            if action == "Mark Payment Link Sent":
+            if action == "Process Order":
+                updates = {"Order Status": "Critical Data Check"}
+
+            elif action == "Mark Payment Link Sent":
                 updates = {"Payment Status": "Payment Link Sent", "Order Status": "Payment Link Sent"}
 
             elif action == "Mark Paid Online":
                 updates = {"Payment Status": "Paid Online", "COD Expected": "0",
-                           "Order Status": "Paid Online", "Dispatch Gate Status": "Blocked"}
+                           "Order Status": "Paid Online"}
 
             elif action == "Mark COD Confirmed":
                 updates = {"Payment Status": "COD Confirmed", "Order Status": "COD Confirmed"}

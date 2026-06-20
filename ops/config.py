@@ -7,17 +7,17 @@ WHITE  = "#FFFFFF"
 BEIGE  = "#F5F0E8"
 LIGHT  = "#FAFAF8"
 
-# ── Order lifecycle (21 stages) ───────────────────────────────────────────────
+# ── Order lifecycle (21 stages) — QC happens BEFORE payment ──────────────────
 ORDER_STAGES = [
     "New Form Order",
     "Critical Data Check",
+    "QC Pending",
+    "Product Photo Sent",
+    "Customer Approved",
     "Payment Pending",
     "Payment Link Sent",
     "Paid Online",
     "COD Confirmed",
-    "QC Pending",
-    "Product Photo Sent",
-    "Customer Approved",
     "Packed",
     "Shipment Label Ready",
     "Courier Booked",
@@ -128,17 +128,17 @@ ORDERS_DISPLAY_COLS = [
     "Risk Status", "Critical Data Status",
 ]
 
-# ── Actions available per order status ───────────────────────────────────────
+# ── Actions available per order status — QC-first flow ───────────────────────
 STAGE_ACTIONS = {
-    "New Form Order":       ["Process Order", "Mark Payment Link Sent", "Mark COD Confirmed"],
-    "Critical Data Check":  ["Mark Payment Link Sent", "Mark COD Confirmed"],
+    "New Form Order":       ["Process Order", "Send to QC"],
+    "Critical Data Check":  ["Send to QC"],
+    "QC Pending":           ["Photo Sent to Customer"],
+    "Product Photo Sent":   ["Customer Approved"],
+    "Customer Approved":    ["Mark Payment Link Sent", "Mark COD Confirmed", "Mark Packed"],
     "Payment Pending":      ["Mark Payment Link Sent", "Mark COD Confirmed"],
     "Payment Link Sent":    ["Mark Paid Online", "Mark COD Confirmed"],
-    "Paid Online":          ["Send to QC"],
-    "COD Confirmed":        ["Send to QC"],
-    "QC Pending":           ["Photo Sent to Customer", "Mark Packed"],
-    "Product Photo Sent":   ["Customer Approved"],
-    "Customer Approved":    ["Mark Packed"],
+    "Paid Online":          ["Mark Packed"],
+    "COD Confirmed":        ["Mark Packed"],
     "Packed":               ["Mark Label Ready"],
     "Shipment Label Ready": ["Courier Booked"],
     "Courier Booked":       ["Handed to Courier"],

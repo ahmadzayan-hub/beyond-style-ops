@@ -169,6 +169,7 @@ if st.button("💾 Save Delivery Update", type="primary"):
         "Staff Number":          staff_num,
         "Actual Received Date":  recv_date,
         "Proof of Delivery":     pod,
+        "Courier Notes":         courier_notes,
     }
     if new_ds in ["Delivered", "POD Received"]:
         master_updates["Order Status"] = new_ds

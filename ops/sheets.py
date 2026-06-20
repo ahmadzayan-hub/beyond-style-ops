@@ -129,7 +129,8 @@ def get_master_orders() -> pd.DataFrame:
 
 def find_order_row(ws, order_id: str) -> int:
     """Return 1-based sheet row for this Order ID (header on row 3, data from row 4)."""
-    col_vals = ws.col_values(2)  # Order ID is column B (col 2)
+    oid_col = _col_letter(ws, "Order ID", head_row=3) or 2  # dynamic lookup, fallback to col B
+    col_vals = ws.col_values(oid_col)
     for i, v in enumerate(col_vals):
         if str(v).strip() == str(order_id).strip():
             return i + 1
@@ -179,18 +180,23 @@ def get_dashboard_counts(df: pd.DataFrame = None) -> dict:
     if df.empty:
         return {}
 
-    counts = df["Order Status"].value_counts().to_dict()
+    counts = df["Order Status"].value_counts().to_dict() if "Order Status" in df.columns else {}
 
-    # Extra computed counters
     counts["_total"]        = len(df)
-    counts["_payment_pend"] = len(df[df["Payment Status"] == "Payment Pending"])
-    counts["_paid_online"]  = len(df[df["Payment Status"] == "Paid Online"])
-    counts["_cod_conf"]     = len(df[df["Payment Status"] == "COD Confirmed"])
-    counts["_high_risk"]    = len(df[df["Risk Status"].str.lower().isin(["high", "critical"])])
-    counts["_pod_missing"]  = len(df[
-        (df["Delivery Status"] == "Delivered") &
-        (df["Proof of Delivery"].astype(str).str.strip() == "")
-    ])
+    counts["_payment_pend"] = len(df[df["Payment Status"] == "Payment Pending"]) if "Payment Status" in df.columns else 0
+    counts["_paid_online"]  = len(df[df["Payment Status"] == "Paid Online"])     if "Payment Status" in df.columns else 0
+    counts["_cod_conf"]     = len(df[df["Payment Status"] == "COD Confirmed"])   if "Payment Status" in df.columns else 0
+    counts["_high_risk"]    = (
+        len(df[df["Risk Status"].str.lower().isin(["high", "critical"])])
+        if "Risk Status" in df.columns else 0
+    )
+    counts["_pod_missing"]  = (
+        len(df[
+            (df["Delivery Status"] == "Delivered") &
+            (df["Proof of Delivery"].astype(str).str.strip() == "")
+        ])
+        if "Delivery Status" in df.columns and "Proof of Delivery" in df.columns else 0
+    )
     return counts
 
 

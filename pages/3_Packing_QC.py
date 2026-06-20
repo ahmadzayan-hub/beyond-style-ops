@@ -113,7 +113,7 @@ with col_a:
 with col_b:
     qc_notes = st.text_area("QC Notes", str(order_row.get("Phase 3 Notes", "")), height=100)
     photo_link = st.text_input("Product / Packing Photo Link (Drive URL)",
-                               str(order_row.get("Proof of Delivery", "")))
+                               str(order_row.get("QC Photo Link", "")))
 
 st.markdown("##### Quick Actions")
 qa1, qa2, qa3, qa4 = st.columns(4)
@@ -142,6 +142,7 @@ if st.button("💾 Save QC Update", type="primary"):
     updates = {
         "Packing QC Status": new_qc,
         "Internal Notes":    qc_notes,
+        "QC Photo Link":     photo_link,
     }
     if new_qc in ["Customer Approved", "Passed"]:
         updates["Order Status"]        = "Customer Approved" if new_qc == "Customer Approved" else "Packed"
