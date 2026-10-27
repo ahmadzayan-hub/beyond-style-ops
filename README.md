@@ -4,6 +4,8 @@ A starter project for verifying Beyond Style UAE orders before packing and couri
 handover. It is built on a 3-layer architecture so the business rules stay consistent
 and reliable instead of being re-checked by hand each time.
 
+<p align="center"><img src="docs/assets/hero.jpg" alt="Concept image (AI-generated). Not a product screenshot." width="100%"><br><sub><em>Concept image (AI-generated). Not a product screenshot.</em></sub></p>
+
 ## What it does
 
 Give it an order with the 13 standard fields and it returns an eight-section result:
