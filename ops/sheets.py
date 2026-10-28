@@ -35,6 +35,25 @@ def _connect():
 
     sheet_id = _get_secret("GOOGLE_SHEETS_ID") or _SHEET_ID
 
+    # Vercel / web API path: OAuth refresh token supplied as environment variables
+    if os.getenv("GOOGLE_OAUTH_REFRESH_TOKEN"):
+        import gspread
+        from google.oauth2.credentials import Credentials
+
+        scopes = [s.strip() for s in os.getenv(
+            "GOOGLE_OAUTH_SCOPES", "https://www.googleapis.com/auth/spreadsheets").split(",") if s.strip()]
+        creds = Credentials(
+            token=None,
+            refresh_token=os.environ["GOOGLE_OAUTH_REFRESH_TOKEN"],
+            token_uri=os.getenv("GOOGLE_OAUTH_TOKEN_URI", "https://oauth2.googleapis.com/token"),
+            client_id=os.environ["GOOGLE_OAUTH_CLIENT_ID"],
+            client_secret=os.environ["GOOGLE_OAUTH_CLIENT_SECRET"],
+            scopes=scopes,
+        )
+        _client = gspread.authorize(creds)
+        _wb = _client.open_by_key(sheet_id)
+        return _wb
+
     # Try Streamlit Cloud path: individual fields stored under [google_oauth] section
     try:
         import streamlit as st

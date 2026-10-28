@@ -24,3 +24,4 @@ jobs:
         run: |
           python tests/test_module1.py
           python tests/test_verification.py
+          python tests/test_web_api.py

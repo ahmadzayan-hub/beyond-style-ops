@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Beyond Style UAE | Ops</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Beyond Style UAE <span>Ops</span></div>
+    <nav id="nav" hidden>
+      <button type="button" data-tab="orders" class="tab active">Orders</button>
+      <button type="button" data-tab="payments" class="tab">Payments</button>
+      <button type="button" id="logout" class="ghost">Sign out</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="login-view" class="card narrow" hidden>
+      <h1>Sign in</h1>
+      <form id="login-form">
+        <label for="password">Shared password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button type="submit" class="primary">Sign in</button>
+        <p id="login-error" class="error" role="alert" hidden></p>
+      </form>
+    </section>
+
+    <section id="orders-view" hidden>
+      <div class="card">
+        <div class="filters">
+          <input id="f-search" type="search" placeholder="Search name, order ID or mobile">
+          <select id="f-status"><option value="">All order statuses</option></select>
+          <select id="f-emirate"><option value="">All emirates</option></select>
+          <select id="f-risk"><option value="">All risk levels</option></select>
+        </div>
+        <p class="muted" id="orders-count"></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th><th>Date</th><th>Customer</th><th>Emirate</th>
+                <th>Order status</th><th>Payment</th><th>Risk</th><th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="orders-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" id="order-detail" hidden>
+        <h2 id="detail-title"></h2>
+        <dl id="detail-fields" class="fields"></dl>
+        <p class="muted">Order actions (stage changes, labels, courier, reviews) are not in this release. Use the Google Sheet for them until they are built.</p>
+      </div>
+    </section>
+
+    <section id="payments-view" hidden>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Order ID</th><th>Customer</th><th>Payment method</th><th>Payment status</th><th>Total</th><th>COD expected</th></tr>
+            </thead>
+            <tbody id="payments-body"></tbody>
+          </table>
+        </div>
+        <p class="muted" id="payments-source"></p>
+      </div>
+
+      <div class="card">
+        <h2>Update payment</h2>
+        <form id="payment-form">
+          <label for="pay-order">Order ID</label>
+          <select id="pay-order" required></select>
+
+          <div class="grid">
+            <div>
+              <label for="pay-status">Payment status</label>
+              <select id="pay-status" required></select>
+              <label for="pay-ref">Payment reference</label>
+              <input id="pay-ref" type="text">
+              <label for="pay-link">Payment link</label>
+              <input id="pay-link" type="text">
+            </div>
+            <div>
+              <label for="pay-cod-exp">COD expected (AED)</label>
+              <input id="pay-cod-exp" type="text" inputmode="decimal">
+              <label for="pay-cod-col">COD collected (AED)</label>
+              <input id="pay-cod-col" type="text" inputmode="decimal">
+              <label for="pay-notes">Notes</label>
+              <textarea id="pay-notes" rows="3"></textarea>
+            </div>
+          </div>
+
+          <p class="muted" id="pay-rule"></p>
+          <button type="submit" class="primary">Save payment update</button>
+          <p id="pay-message" role="status" hidden></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

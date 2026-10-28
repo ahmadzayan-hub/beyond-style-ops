@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "{data/**,config/**,execution/**,ops/**}",
+      "maxDuration": 30
+    }
+  }
+}

@@ -1,8 +1,10 @@
-# Beyond Style Agent — Python dependencies
+# Beyond Style ops — Python dependencies for the web app (Vercel) and the test suites.
 # Install all: pip install -r requirements.txt
+# The legacy Streamlit dashboard has its own file: requirements-streamlit.txt
 
-# Streamlit dashboard
-streamlit>=1.35.0
+# Web API (api/index.py)
+fastapi>=0.110.0
+httpx>=0.27.0
 
 # Google Sheets integration
 gspread>=6.0.0
@@ -12,5 +14,5 @@ google-auth-oauthlib>=1.0.0
 # Data
 pandas>=2.0.0
 
-# Load .env secrets (local only — Streamlit Cloud uses st.secrets)
+# Load .env secrets (local only — Vercel uses environment variables)
 python-dotenv>=1.0.0

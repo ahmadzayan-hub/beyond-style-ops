@@ -1,0 +1,9 @@
+.streamlit/
+pages/
+ops_app.py
+run_order_verification.py
+tests/
+directives/
+docs/
+.devcontainer/
+.github/

@@ -72,3 +72,15 @@ catalogue, which currently holds the two products from the test cases.
 Python 3.9 or newer. The core verification uses only the Python standard library, so
 there is nothing to install to run the tests. The `requirements.txt` lists packages
 you will need only when you add API integrations later.
+
+## Web app on Vercel (slice 1)
+
+Orders (read-only) and Payments (update) run as a Vercel Python function (`api/index.py`) with a static front end in `public/`.
+The Streamlit dashboard is kept for local use (`pip install -r requirements.txt -r requirements-streamlit.txt`).
+
+Set these in Vercel → Project → Settings → Environment Variables:
+- `APP_PASSWORD`: the shared password. Sign-in is refused until it is set.
+- `SESSION_SECRET`: any long random string, used to sign session cookies.
+- `GOOGLE_SHEETS_ID`, `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN`: Google Sheets access.
+
+Not in this release: order actions, Packing QC, Labels, Courier and Reviews. Use the Google Sheet for them until they are rebuilt.
