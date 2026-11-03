@@ -24,3 +24,5 @@ jobs:
         run: |
           python tests/test_module1.py
           python tests/test_verification.py
+          python tests/test_escalation_summary.py
+          python tests/test_directives.py
