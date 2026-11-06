@@ -5,6 +5,7 @@ import sys
 import json
 import pandas as pd
 from datetime import datetime
+from ops.auth import assert_access, assert_update
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "execution"))
 
@@ -29,6 +30,7 @@ def _get_secret(key: str, default: str = "") -> str:
 
 
 def _connect():
+    assert_access()
     global _client, _wb
     if _wb is not None:
         return _wb
@@ -68,6 +70,7 @@ def _connect():
 
 
 def _ws(name: str):
+    assert_access()
     return _connect().worksheet(name)
 
 
@@ -148,6 +151,8 @@ def _col_letter(ws, header_name: str, head_row: int = 3) -> int:
 
 def update_master_order(order_id: str, updates: dict) -> bool:
     """Update one or more columns in Master Orders for the given Order ID."""
+    assert_update("Master Orders", updates)
+    updates = dict(updates)
     try:
         ws       = _ws("Master Orders")
         row      = find_order_row(ws, order_id)
@@ -213,6 +218,8 @@ def get_payments() -> pd.DataFrame:
 
 
 def update_payment(order_id: str, updates: dict) -> bool:
+    assert_update("Payments", updates)
+    updates = dict(updates)
     try:
         ws      = _ws("Payments")
         headers = ws.row_values(1)
@@ -254,6 +261,8 @@ def get_packing_qc() -> pd.DataFrame:
 
 
 def update_packing_qc(order_id: str, updates: dict) -> bool:
+    assert_update("Packing QC", updates)
+    updates = dict(updates)
     try:
         ws      = _ws("Packing QC")
         headers = ws.row_values(1)
@@ -299,6 +308,8 @@ def get_courier_tracking() -> pd.DataFrame:
 
 
 def update_courier(order_id: str, updates: dict) -> bool:
+    assert_update("Courier Tracking", updates)
+    updates = dict(updates)
     try:
         ws      = _ws("Courier Tracking")
         headers = ws.row_values(1)

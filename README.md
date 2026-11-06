@@ -72,3 +72,12 @@ catalogue, which currently holds the two products from the test cases.
 Python 3.9 or newer. The core verification uses only the Python standard library, so
 there is nothing to install to run the tests. The `requirements.txt` lists packages
 you will need only when you add API integrations later.
+
+## Dashboard access
+
+The Streamlit operations dashboard requires verified OIDC sign-in and an explicit
+owner-configured subject-to-role map. Visitors cannot select their own role.
+Unconfigured or unmapped accounts cannot read operational data, and writes are
+checked again at the Sheets boundary. See [setup and rollout checklist](docs/OPS_AUTH_SETUP.md)
+before enabling it with real customer data. The offline verification scripts do
+not require dashboard sign-in.

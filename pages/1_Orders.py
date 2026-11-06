@@ -9,6 +9,7 @@ from ops.config import (
     ORDER_STAGES, STATUS_COLOR, STAGE_ACTIONS, ROLES,
     GOLD, BLACK, LIGHT, status_badge, risk_badge
 )
+from ops.auth import require_access, can_perform_action
 from ops.sheets import get_master_orders, update_master_order
 
 st.set_page_config(page_title="Orders · Beyond Style", page_icon="📋", layout="wide")
@@ -29,7 +30,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ── Role ──────────────────────────────────────────────────────────────────────
-role = st.session_state.get("role", "Read Only")
+role = require_access()
 can_edit = role in ["Owner / Admin", "Sales / WhatsApp"]
 
 # ── Load ──────────────────────────────────────────────────────────────────────
@@ -178,7 +179,8 @@ if role == "Read Only":
     st.caption("👁️ Read-only mode — no actions available.")
     st.stop()
 
-available_actions = STAGE_ACTIONS.get(current_status, [])
+available_actions = [action for action in STAGE_ACTIONS.get(current_status, [])
+                     if can_perform_action(role, action)]
 
 st.markdown("#### ⚡ Actions")
 if not available_actions:

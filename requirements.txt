@@ -2,7 +2,7 @@
 # Install all: pip install -r requirements.txt
 
 # Streamlit dashboard
-streamlit>=1.35.0
+streamlit[auth]>=1.50.0
 
 # Google Sheets integration
 gspread>=6.0.0
