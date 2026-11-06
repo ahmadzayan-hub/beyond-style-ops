@@ -6,13 +6,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import streamlit as st
 import pandas as pd
 from ops.config import COURIER_STATUSES, DELIVERY_STATUSES, GOLD, BLACK, LIGHT, status_badge
-from ops.sheets import get_master_orders, get_courier_tracking, update_master_order, update_courier
+from ops.ui import show_update_error
+from ops.auth import require_access
+from ops.sheets import get_master_orders, get_courier_tracking, update_master_order
 
 st.set_page_config(page_title="Courier · Beyond Style", page_icon="🚚", layout="wide")
 st.markdown(f"<style>html,body,[class*='css']{{font-family:'Inter',sans-serif;background:{LIGHT}}}</style>",
             unsafe_allow_html=True)
 
-role = st.session_state.get("role", "Read Only")
+role = require_access()
 can_edit = role in ["Owner / Admin", "Courier / Delivery"]
 
 st.title("🚚 Courier & Delivery Tracking")
@@ -139,27 +141,18 @@ def _quick(label, col, upd):
             st.cache_data.clear()
             st.rerun()
         else:
-            st.error("Update failed.")
+            show_update_error(ok)
 
 _quick("🚚 Handed to Courier",
     qa1, {"Courier Status":"Handed to Courier","Order Status":"Handed to Courier"})
 _quick("📦 Out for Delivery",
     qa2, {"Courier Status":"Out for Delivery","Order Status":"Out for Delivery"})
 _quick("📬 POD Received",
-    qa3, {"Delivery Status":"POD Received","Order Status":"POD Received"})
+    qa3, {"Delivery Status":"POD Received", "Order Status":"POD Received",
+          "Receiver Name": receiver, "Staff Number": staff_num,
+          "Actual Received Date": recv_date, "Proof of Delivery": pod})
 
 if st.button("💾 Save Delivery Update", type="primary"):
-    # Validate for delivered closeout
-    if new_ds in ["Delivered", "POD Received"]:
-        missing = []
-        if not receiver.strip(): missing.append("Receiver Name")
-        if not staff_num.strip(): missing.append("Staff / Courier Number")
-        if not recv_date.strip(): missing.append("Actual Received Date")
-        if not pod.strip(): missing.append("Proof of Delivery")
-        if missing:
-            st.error(f"❌ Cannot mark Delivered. Missing: {', '.join(missing)}")
-            st.stop()
-
     master_updates = {
         "Courier Company":       courier_co,
         "AWB / Tracking Number": awb,
@@ -180,4 +173,4 @@ if st.button("💾 Save Delivery Update", type="primary"):
         st.cache_data.clear()
         st.rerun()
     else:
-        st.error("❌ Update failed.")
+        show_update_error(ok)

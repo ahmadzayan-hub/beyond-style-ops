@@ -6,13 +6,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import streamlit as st
 import pandas as pd
 from ops.config import SATISFACTION_SCORES, GOLD, BLACK, LIGHT, STATUS_COLOR, status_badge
+from ops.ui import show_update_error
+from ops.auth import require_access
 from ops.sheets import get_master_orders, update_master_order
 
 st.set_page_config(page_title="Reviews · Beyond Style", page_icon="⭐", layout="wide")
 st.markdown(f"<style>html,body,[class*='css']{{font-family:'Inter',sans-serif;background:{LIGHT}}}</style>",
             unsafe_allow_html=True)
 
-role = st.session_state.get("role", "Read Only")
+role = require_access()
 can_edit = role in ["Owner / Admin", "Sales / WhatsApp"]
 
 st.title("⭐ Customer Reviews & Closeout")
@@ -144,7 +146,7 @@ def _quick(label, col, upd):
             st.cache_data.clear()
             st.rerun()
         else:
-            st.error("Update failed.")
+            show_update_error(ok)
 
 _quick("📩 Request Review",
     qa1, {"Order Status": "Review Requested"})
@@ -170,7 +172,7 @@ if st.button("💾 Save Review Update", type="primary"):
         st.cache_data.clear()
         st.rerun()
     else:
-        st.error("❌ Update failed.")
+        show_update_error(ok)
 
 st.markdown("---")
 
@@ -180,6 +182,7 @@ st.markdown("All conditions must be met:")
 
 ds  = str(o.get("Delivery Status",""))
 rn  = str(o.get("Receiver Name","")).strip()
+sn  = str(o.get("Staff Number","")).strip()
 ard = str(o.get("Actual Received Date","")).strip()
 pod = str(o.get("Proof of Delivery","")).strip()
 cs  = str(o.get("Customer Satisfaction Score","")).strip()
@@ -187,6 +190,7 @@ cs  = str(o.get("Customer Satisfaction Score","")).strip()
 checks = {
     "✅ Delivery Status is Delivered or POD Received": ds in ["Delivered","POD Received"],
     "✅ Receiver Name completed":                       bool(rn),
+    "✅ Staff / Courier Number completed (or N/A)":       bool(sn),
     "✅ Actual Received Date completed":                bool(ard),
     "✅ Proof of Delivery provided":                    bool(pod),
     "✅ Customer Satisfaction Score recorded":          bool(cs),
@@ -210,6 +214,6 @@ if all_ok:
             st.cache_data.clear()
             st.rerun()
         else:
-            st.error("Update failed.")
+            show_update_error(ok)
 else:
     st.button("🔒 Close Successfully (conditions not met)", disabled=True)

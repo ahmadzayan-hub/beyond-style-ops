@@ -6,13 +6,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import streamlit as st
 import pandas as pd
 from ops.config import PAYMENT_STATUSES, GOLD, BLACK, LIGHT, status_badge
-from ops.sheets import get_payments, get_master_orders, update_payment, update_master_order
+from ops.ui import show_update_error
+from ops.auth import require_access
+from ops.sheets import get_payments, get_master_orders, update_payment_and_master
 
 st.set_page_config(page_title="Payments · Beyond Style", page_icon="💳", layout="wide")
 st.markdown(f"<style>html,body,[class*='css']{{font-family:'Inter',sans-serif;background:{LIGHT}}}</style>",
             unsafe_allow_html=True)
 
-role = st.session_state.get("role", "Read Only")
+role = require_access()
 can_edit = role in ["Owner / Admin", "Sales / WhatsApp"]
 
 st.title("💳 Payment Control")
@@ -142,12 +144,12 @@ if st.button("💾 Save Payment Update", type="primary"):
     elif new_status == "Payment Link Sent":
         master_updates["Order Status"] = "Payment Link Sent"
 
-    ok1 = update_payment(sel_id, updates) if not pay_df.empty else True
-    ok2 = update_master_order(sel_id, master_updates)
+    # Both records must exist and validate before either sheet can change.
+    ok = update_payment_and_master(sel_id, updates, master_updates)
 
-    if ok2:
+    if ok:
         st.success("✅ Payment updated.")
         st.cache_data.clear()
         st.rerun()
     else:
-        st.error("❌ Update failed.")
+        show_update_error(ok)

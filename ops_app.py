@@ -9,9 +9,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import streamlit as st
 import pandas as pd
 from ops.config import (
-    ORDER_STAGES, STATUS_COLOR, ROLES, ROLE_COLORS,
+    ORDER_STAGES, STATUS_COLOR, ROLE_COLORS,
     GOLD, BLACK, BEIGE, LIGHT, status_badge
 )
+from ops.auth import require_access
 from ops.sheets import get_master_orders, get_dashboard_counts
 
 # ── Page config ───────────────────────────────────────────────────────────────
@@ -21,6 +22,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+role = require_access()
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown(f"""
@@ -107,9 +110,7 @@ with st.sidebar:
     st.markdown("## ✦ Beyond Style UAE")
     st.markdown("---")
 
-    role = st.selectbox("👤 Your Role", ROLES,
-                        index=ROLES.index(st.session_state.get("role", ROLES[0])))
-    st.session_state["role"] = role
+    st.caption("Your assigned role")
     role_c = ROLE_COLORS.get(role, GOLD)
     st.markdown(
         f'<div style="background:{role_c};color:#fff;padding:6px 12px;'
