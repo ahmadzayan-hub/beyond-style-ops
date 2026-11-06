@@ -4,6 +4,7 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 import streamlit as st
+from ops.role_gate import require_role
 import pandas as pd
 from ops.config import (
     ORDER_STAGES, STATUS_COLOR, STAGE_ACTIONS, ROLES,
@@ -29,7 +30,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ── Role ──────────────────────────────────────────────────────────────────────
-role = st.session_state.get("role", "Read Only")
+role = require_role()
 can_edit = role in ["Owner / Admin", "Sales / WhatsApp"]
 
 # ── Load ──────────────────────────────────────────────────────────────────────

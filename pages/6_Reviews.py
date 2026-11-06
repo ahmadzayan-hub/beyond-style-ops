@@ -4,6 +4,7 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 import streamlit as st
+from ops.role_gate import require_role
 import pandas as pd
 from ops.config import SATISFACTION_SCORES, GOLD, BLACK, LIGHT, STATUS_COLOR, status_badge
 from ops.sheets import get_master_orders, update_master_order
@@ -12,7 +13,7 @@ st.set_page_config(page_title="Reviews · Beyond Style", page_icon="⭐", layout
 st.markdown(f"<style>html,body,[class*='css']{{font-family:'Inter',sans-serif;background:{LIGHT}}}</style>",
             unsafe_allow_html=True)
 
-role = st.session_state.get("role", "Read Only")
+role = require_role()
 can_edit = role in ["Owner / Admin", "Sales / WhatsApp"]
 
 st.title("⭐ Customer Reviews & Closeout")

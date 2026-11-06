@@ -4,6 +4,7 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 import streamlit as st
+from ops.role_gate import require_role
 import pandas as pd
 from ops.config import COURIER_STATUSES, DELIVERY_STATUSES, GOLD, BLACK, LIGHT, status_badge
 from ops.sheets import get_master_orders, get_courier_tracking, update_master_order, update_courier
@@ -12,7 +13,7 @@ st.set_page_config(page_title="Courier · Beyond Style", page_icon="🚚", layou
 st.markdown(f"<style>html,body,[class*='css']{{font-family:'Inter',sans-serif;background:{LIGHT}}}</style>",
             unsafe_allow_html=True)
 
-role = st.session_state.get("role", "Read Only")
+role = require_role()
 can_edit = role in ["Owner / Admin", "Courier / Delivery"]
 
 st.title("🚚 Courier & Delivery Tracking")

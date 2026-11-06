@@ -11,6 +11,7 @@ and credentials — that is done in a separate integration script.
 import json
 import os
 from datetime import datetime
+from delivery_status import sheet_fields
 
 _MAP_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "config", "google_sheet_column_map.json"
@@ -67,9 +68,10 @@ def build_tracker_update(order: dict, result: dict, send_result: dict = None) ->
     }
 
     if send_result:
-        mapping[col["whatsapp_message_sent"]] = "Yes" if send_result.get("sent") else "No"
+        fields = sheet_fields(send_result)
+        mapping[col["whatsapp_message_sent"]] = fields["sent_label"]
         mapping[col["whatsapp_message_type"]] = result.get("message_type", "")
-        mapping[col["whatsapp_sent_time"]]    = send_result.get("timestamp", "")
-        mapping[col["meta_message_id"]]       = send_result.get("message_id", "")
+        mapping[col["whatsapp_sent_time"]]    = fields["sent_time"]
+        mapping[col["meta_message_id"]]       = fields["message_id"]
 
     return {"ok": True, "mapping": mapping, "reason": ""}

@@ -13,6 +13,7 @@ from ops.config import (
     GOLD, BLACK, BEIGE, LIGHT, status_badge
 )
 from ops.sheets import get_master_orders, get_dashboard_counts
+from ops.role_gate import require_role, sidebar_sign_in
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -107,15 +108,7 @@ with st.sidebar:
     st.markdown("## ✦ Beyond Style UAE")
     st.markdown("---")
 
-    role = st.selectbox("👤 Your Role", ROLES,
-                        index=ROLES.index(st.session_state.get("role", ROLES[0])))
-    st.session_state["role"] = role
-    role_c = ROLE_COLORS.get(role, GOLD)
-    st.markdown(
-        f'<div style="background:{role_c};color:#fff;padding:6px 12px;'
-        f'border-radius:6px;font-size:12px;font-weight:600;text-align:center">'
-        f'{role}</div>', unsafe_allow_html=True
-    )
+    sidebar_sign_in(ROLE_COLORS, GOLD)
 
     st.markdown("---")
     if st.button("🔄 Refresh Data"):
@@ -136,6 +129,9 @@ with st.sidebar:
     st.markdown('<p style="font-size:11px;color:#888">Beyond Style UAE<br>+971 55 155 6991<br>beyondstyle.ae</p>',
                 unsafe_allow_html=True)
 
+
+# ── Access: nothing below loads until the session proves a role ──────────────
+role = require_role()
 
 # ── Load data ─────────────────────────────────────────────────────────────────
 @st.cache_data(ttl=60)

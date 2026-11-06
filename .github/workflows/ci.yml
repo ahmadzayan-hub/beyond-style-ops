@@ -25,3 +25,4 @@ jobs:
           python tests/test_module1.py
           python tests/test_verification.py
           python tests/test_web_api.py
+          python tests/test_access_and_delivery.py
