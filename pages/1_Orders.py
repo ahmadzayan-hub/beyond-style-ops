@@ -9,6 +9,7 @@ from ops.config import (
     ORDER_STAGES, STATUS_COLOR, STAGE_ACTIONS, ROLES,
     GOLD, BLACK, LIGHT, status_badge, risk_badge
 )
+from ops.ui import show_update_error
 from ops.auth import require_access, can_perform_action
 from ops.sheets import get_master_orders, update_master_order
 
@@ -235,30 +236,13 @@ else:
                            "Order Status": "Handed to Courier"}
 
             elif action == "Mark Delivered":
-                missing = []
-                if not str(order.get("Receiver Name","")).strip(): missing.append("Receiver Name")
-                if not str(order.get("Staff Number","")).strip(): missing.append("Staff Number")
-                if not str(order.get("Actual Received Date","")).strip(): missing.append("Actual Received Date")
-                if not str(order.get("Proof of Delivery","")).strip(): missing.append("Proof of Delivery")
-                if missing:
-                    st.error(f"❌ Cannot mark Delivered. Missing: {', '.join(missing)}")
-                else:
-                    updates = {"Delivery Status": "Delivered", "Order Status": "Delivered"}
+                updates = {"Delivery Status": "Delivered", "Order Status": "Delivered"}
 
             elif action == "Request Review":
                 updates = {"Order Status": "Review Requested"}
 
             elif action == "Close Successfully":
-                ds = str(order.get("Delivery Status",""))
-                rn = str(order.get("Receiver Name","")).strip()
-                ard = str(order.get("Actual Received Date","")).strip()
-                pod = str(order.get("Proof of Delivery","")).strip()
-                if ds not in ["Delivered", "POD Received"]:
-                    st.error("❌ Delivery Status must be Delivered or POD Received.")
-                elif not rn or not ard or not pod:
-                    st.error("❌ Receiver Name, Actual Received Date, and Proof of Delivery are required.")
-                else:
-                    updates = {"Order Status": "Closed Successfully"}
+                updates = {"Order Status": "Closed Successfully"}
 
             if updates:
                 with st.spinner(f"Updating..."):
@@ -268,7 +252,7 @@ else:
                     st.cache_data.clear()
                     st.rerun()
                 else:
-                    st.error("❌ Update failed. Check logs.")
+                    show_update_error(ok)
 
 # ── Manual field edit (Owner only) ────────────────────────────────────────────
 if role == "Owner / Admin":
@@ -293,6 +277,6 @@ if role == "Owner / Admin":
                     st.cache_data.clear()
                     st.rerun()
                 else:
-                    st.error("Save failed.")
+                    show_update_error(ok)
             else:
                 st.info("No changes to save.")

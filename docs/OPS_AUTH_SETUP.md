@@ -97,9 +97,9 @@ They do not establish real hosted identity-provider or Google Sheets acceptance.
 
 ### Known remaining acceptance work
 
-The business workflow still has legacy UI-only prerequisites. For example, the
-Courier page's POD Received shortcut does not enforce the same required fields as
-its Save form. Role enforcement does not fix that integrity defect. Review the
-workflow rules at the write boundary before operational rollout. No production
-login, provider revocation, live Sheets write, multi-user browser or hosted cache
+Delivery/closeout evidence and label QC now have shared write-boundary validation;
+see [order integrity](OPS_ORDER_INTEGRITY.md). Dashboard cells and the paired
+payment records use one atomic workbook batch. This is not a complete lifecycle
+policy, concurrent read/write transaction, or audit log. No production login,
+provider revocation, live Sheets write, multi-user browser or hosted cache
 acceptance has been established by these local tests.

@@ -81,3 +81,7 @@ Unconfigured or unmapped accounts cannot read operational data, and writes are
 checked again at the Sheets boundary. See [setup and rollout checklist](docs/OPS_AUTH_SETUP.md)
 before enabling it with real customer data. The offline verification scripts do
 not require dashboard sign-in.
+
+Dashboard saves also validate delivery/closeout evidence and submit changes in one
+atomic workbook batch, including Payments and Master Orders together. See
+[order integrity requirements and limits](docs/OPS_ORDER_INTEGRITY.md) before rollout.
