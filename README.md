@@ -85,3 +85,21 @@ not require dashboard sign-in.
 Dashboard saves also validate delivery/closeout evidence and submit changes in one
 atomic workbook batch, including Payments and Master Orders together. See
 [order integrity requirements and limits](docs/OPS_ORDER_INTEGRITY.md) before rollout.
+
+## CI and hosting
+
+GitHub Actions runs the Python verification and dashboard regression suites in
+the `tests` job. The dashboard entry point is `ops_app.py`, which runs with
+Streamlit; this repository does not provide a Vercel Python Functions entry point.
+
+The legacy Vercel projects `beyond-style-ops` and `beyond-style-ops-vgt1` try to
+build this repository and fail with `PYTHON_ENTRYPOINT_NOT_FOUND`. These external
+deployment checks are separate from the Python CI result. `vercel.json` disables
+automatic Git deployments for all branches using Vercel's documented
+[`git.deploymentEnabled` setting](https://vercel.com/docs/project-configuration/git-configuration#turning-off-all-automatic-deployments).
+Historical failed deployment statuses remain on earlier commits.
+
+Keep this opt-out until a supported Vercel application is deliberately added, or
+disconnect the legacy projects in Vercel. Deploy the Streamlit dashboard only to
+an approved host after completing the authentication and integrity acceptance
+steps linked above.
