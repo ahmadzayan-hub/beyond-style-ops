@@ -26,5 +26,6 @@ jobs:
           python tests/test_verification.py
           python tests/test_escalation_summary.py
           python tests/test_directives.py
+          python tests/test_delivery_status.py
           python -m unittest discover -s tests -p "test_auth*.py" -v
           python -m unittest discover -s tests -p "test_integrity*.py" -v
