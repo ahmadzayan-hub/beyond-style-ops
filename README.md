@@ -73,14 +73,33 @@ Python 3.9 or newer. The core verification uses only the Python standard library
 there is nothing to install to run the tests. The `requirements.txt` lists packages
 you will need only when you add API integrations later.
 
-## Web app on Vercel (slice 1)
+## Dashboard access
 
-Orders (read-only) and Payments (update) run as a Vercel Python function (`api/index.py`) with a static front end in `public/`.
-The Streamlit dashboard is kept for local use (`pip install -r requirements.txt -r requirements-streamlit.txt`).
+The Streamlit operations dashboard requires verified OIDC sign-in and an explicit
+owner-configured subject-to-role map. Visitors cannot select their own role.
+Unconfigured or unmapped accounts cannot read operational data, and writes are
+checked again at the Sheets boundary. See [setup and rollout checklist](docs/OPS_AUTH_SETUP.md)
+before enabling it with real customer data. The offline verification scripts do
+not require dashboard sign-in.
 
-Set these in Vercel → Project → Settings → Environment Variables:
-- `APP_PASSWORD`: the shared password. Sign-in is refused until it is set.
-- `SESSION_SECRET`: any long random string, used to sign session cookies.
-- `GOOGLE_SHEETS_ID`, `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN`: Google Sheets access.
+Dashboard saves also validate delivery/closeout evidence and submit changes in one
+atomic workbook batch, including Payments and Master Orders together. See
+[order integrity requirements and limits](docs/OPS_ORDER_INTEGRITY.md) before rollout.
 
-Not in this release: order actions, Packing QC, Labels, Courier and Reviews. Use the Google Sheet for them until they are rebuilt.
+## CI and hosting
+
+GitHub Actions runs the Python verification and dashboard regression suites in
+the `tests` job. The dashboard entry point is `ops_app.py`, which runs with
+Streamlit; this repository does not provide a Vercel Python Functions entry point.
+
+The legacy Vercel projects `beyond-style-ops` and `beyond-style-ops-vgt1` try to
+build this repository and fail with `PYTHON_ENTRYPOINT_NOT_FOUND`. These external
+deployment checks are separate from the Python CI result. `vercel.json` disables
+automatic Git deployments for all branches using Vercel's documented
+[`git.deploymentEnabled` setting](https://vercel.com/docs/project-configuration/git-configuration#turning-off-all-automatic-deployments).
+Historical failed deployment statuses remain on earlier commits.
+
+Keep this opt-out until a supported Vercel application is deliberately added, or
+disconnect the legacy projects in Vercel. Deploy the Streamlit dashboard only to
+an approved host after completing the authentication and integrity acceptance
+steps linked above.

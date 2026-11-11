@@ -4,16 +4,17 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 import streamlit as st
-from ops.role_gate import require_role
 import pandas as pd
 from ops.config import QC_STATUSES, GOLD, BLACK, LIGHT, STATUS_COLOR, status_badge
+from ops.ui import show_update_error
+from ops.auth import require_access
 from ops.sheets import get_master_orders, update_master_order
 
 st.set_page_config(page_title="Packing QC · Beyond Style", page_icon="📦", layout="wide")
 st.markdown(f"<style>html,body,[class*='css']{{font-family:'Inter',sans-serif;background:{LIGHT}}}</style>",
             unsafe_allow_html=True)
 
-role = require_role()
+role = require_access()
 can_edit = role in ["Owner / Admin", "Packing / Sharon"]
 
 st.title("📦 Packing QC")
@@ -127,7 +128,7 @@ def _qc_action(label, updates, col):
             st.cache_data.clear()
             st.rerun()
         else:
-            st.error("Update failed.")
+            show_update_error(ok)
 
 _qc_action("📸 Photo Sent",
     {"Packing QC Status":"Photo Sent to Customer","Order Status":"Product Photo Sent"}, qa1)
@@ -157,4 +158,4 @@ if st.button("💾 Save QC Update", type="primary"):
         st.cache_data.clear()
         st.rerun()
     else:
-        st.error("❌ Update failed.")
+        show_update_error(ok)

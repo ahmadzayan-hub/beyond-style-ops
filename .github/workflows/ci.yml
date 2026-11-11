@@ -24,5 +24,8 @@ jobs:
         run: |
           python tests/test_module1.py
           python tests/test_verification.py
-          python tests/test_web_api.py
-          python tests/test_access_and_delivery.py
+          python tests/test_escalation_summary.py
+          python tests/test_directives.py
+          python tests/test_delivery_status.py
+          python -m unittest discover -s tests -p "test_auth*.py" -v
+          python -m unittest discover -s tests -p "test_integrity*.py" -v

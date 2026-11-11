@@ -1,8 +1,6 @@
 {
-  "functions": {
-    "api/index.py": {
-      "includeFiles": "{data/**,config/**,execution/**,ops/**}",
-      "maxDuration": 30
-    }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": false
   }
 }

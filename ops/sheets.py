@@ -2,9 +2,11 @@
 
 import os
 import sys
-import json
+from dataclasses import dataclass
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone
+from ops.auth import assert_access, assert_update
+from ops.integrity import UpdateValidationError, validate_order_update
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "execution"))
 
@@ -29,30 +31,12 @@ def _get_secret(key: str, default: str = "") -> str:
 
 
 def _connect():
+    assert_access()
     global _client, _wb
     if _wb is not None:
         return _wb
 
     sheet_id = _get_secret("GOOGLE_SHEETS_ID") or _SHEET_ID
-
-    # Vercel / web API path: OAuth refresh token supplied as environment variables
-    if os.getenv("GOOGLE_OAUTH_REFRESH_TOKEN"):
-        import gspread
-        from google.oauth2.credentials import Credentials
-
-        scopes = [s.strip() for s in os.getenv(
-            "GOOGLE_OAUTH_SCOPES", "https://www.googleapis.com/auth/spreadsheets").split(",") if s.strip()]
-        creds = Credentials(
-            token=None,
-            refresh_token=os.environ["GOOGLE_OAUTH_REFRESH_TOKEN"],
-            token_uri=os.getenv("GOOGLE_OAUTH_TOKEN_URI", "https://oauth2.googleapis.com/token"),
-            client_id=os.environ["GOOGLE_OAUTH_CLIENT_ID"],
-            client_secret=os.environ["GOOGLE_OAUTH_CLIENT_SECRET"],
-            scopes=scopes,
-        )
-        _client = gspread.authorize(creds)
-        _wb = _client.open_by_key(sheet_id)
-        return _wb
 
     # Try Streamlit Cloud path: individual fields stored under [google_oauth] section
     try:
@@ -87,11 +71,12 @@ def _connect():
 
 
 def _ws(name: str):
+    assert_access()
     return _connect().worksheet(name)
 
 
 def _now() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
 
 def _ws_to_df(ws, head_row: int = 1) -> pd.DataFrame:
@@ -146,41 +131,97 @@ def get_master_orders() -> pd.DataFrame:
     return df
 
 
-def find_order_row(ws, order_id: str) -> int:
-    """Return 1-based sheet row for this Order ID (header on row 3, data from row 4)."""
-    oid_col = _col_letter(ws, "Order ID", head_row=3) or 2  # dynamic lookup, fallback to col B
-    col_vals = ws.col_values(oid_col)
-    for i, v in enumerate(col_vals):
-        if str(v).strip() == str(order_id).strip():
-            return i + 1
-    return None
+@dataclass(frozen=True)
+class UpdateResult:
+    success: bool
+    message: str = ""
+    uncertain: bool = False
+
+    def __bool__(self):
+        return self.success
 
 
-def _col_letter(ws, header_name: str, head_row: int = 3) -> int:
-    """Return 1-based column index for a header name."""
-    headers = ws.row_values(head_row)
-    for i, h in enumerate(headers):
-        if h.strip() == header_name.strip():
-            return i + 1
-    return None
+def _prepare_update(ws, resource, order_id, updates):
+    """Read fresh data and validate every target before constructing any write."""
+    head_row = 3 if resource == "Master Orders" else 1
+    rows = ws.get_all_values()
+    if len(rows) < head_row:
+        raise UpdateValidationError("Worksheet headers are missing. Ask the owner to check the sheet.")
+    headers = [str(h).strip() for h in rows[head_row - 1]]
+    changes = dict(updates)
+    if resource in {"Master Orders", "Payments"}:
+        changes["Last Updated"] = _now()
+    required = {"Order ID", *changes}
+    if any(headers.count(field) != 1 for field in required):
+        raise UpdateValidationError("A required worksheet column is missing or duplicated. No changes were saved.")
+    # Reject duplicate nonempty headers rather than interpreting an ambiguous record.
+    nonempty = [h for h in headers if h]
+    if len(nonempty) != len(set(nonempty)):
+        raise UpdateValidationError("Worksheet columns are duplicated. No changes were saved.")
+    oid = str(order_id).strip() if order_id is not None else ""
+    if not oid:
+        raise UpdateValidationError("Choose a nonempty Order ID.")
+    oid_col = headers.index("Order ID")
+    matches = [(i, row) for i, row in enumerate(rows[head_row:], start=head_row)
+               if len(row) > oid_col and str(row[oid_col]).strip() == oid]
+    if len(matches) != 1:
+        raise UpdateValidationError("The order is missing or duplicated in a required worksheet. No changes were saved.")
+    row_index, values = matches[0]
+    current = {header: values[i] if i < len(values) else ""
+               for i, header in enumerate(headers) if header}
+    if resource in {"Master Orders", "Courier Tracking"}:
+        validate_order_update(current, changes)
+    requests = []
+    for field, value in changes.items():
+        requests.append({"updateCells": {
+            "start": {"sheetId": ws.id, "rowIndex": row_index, "columnIndex": headers.index(field)},
+            "rows": [{"values": [{"userEnteredValue": {"stringValue": "" if value is None else str(value)}}]}],
+            "fields": "userEnteredValue",
+        }})
+    return requests
 
 
-def update_master_order(order_id: str, updates: dict) -> bool:
-    """Update one or more columns in Master Orders for the given Order ID."""
+def update_order_records(order_id: str, changes_by_resource: dict) -> UpdateResult:
+    """Validate all records, then commit all cells in one atomic Sheets request.
+
+    Authorization errors propagate. A transport failure after submission is
+    uncertain: do not retry automatically or claim that nothing was written.
+    """
+    for resource, updates in changes_by_resource.items():
+        assert_update(resource, updates)
+    if not changes_by_resource:
+        raise PermissionError("This account cannot make an empty update.")
     try:
-        ws       = _ws("Master Orders")
-        row      = find_order_row(ws, order_id)
-        if not row:
-            return False
-        updates["Last Updated"] = _now()
-        for col_name, value in updates.items():
-            col_num = _col_letter(ws, col_name, head_row=3)
-            if col_num:
-                ws.update_cell(row, col_num, str(value) if value is not None else "")
-        return True
-    except Exception as e:
-        print(f"update_master_order error: {e}")
-        return False
+        workbook = _connect()
+        requests = []
+        for resource, updates in changes_by_resource.items():
+            ws = workbook.worksheet(resource)
+            requests.extend(_prepare_update(ws, resource, order_id, updates))
+        # Recheck roles after the reads, just before committing the complete batch.
+        for resource, updates in changes_by_resource.items():
+            assert_update(resource, updates)
+    except PermissionError:
+        raise
+    except UpdateValidationError as error:
+        return UpdateResult(False, str(error))
+    except Exception:
+        return UpdateResult(False, "The worksheets could not be checked. No changes were submitted.")
+    try:
+        # spreadsheets.batchUpdate is atomic across all requests in this workbook.
+        # Explicit stringValue avoids interpreting user text as a formula.
+        workbook.batch_update({"requests": requests})
+        return UpdateResult(True)
+    except Exception:
+        return UpdateResult(False, "Update not confirmed. Refresh and verify the saved values before retrying.",
+                            uncertain=True)
+
+
+def update_master_order(order_id: str, updates: dict) -> UpdateResult:
+    return update_order_records(order_id, {"Master Orders": updates})
+
+
+def update_payment_and_master(order_id: str, payment_updates: dict, master_updates: dict) -> UpdateResult:
+    return update_order_records(order_id, {"Payments": payment_updates, "Master Orders": master_updates})
 
 
 def get_order(order_id: str) -> dict:
@@ -231,29 +272,8 @@ def get_payments() -> pd.DataFrame:
     return df
 
 
-def update_payment(order_id: str, updates: dict) -> bool:
-    try:
-        ws      = _ws("Payments")
-        headers = ws.row_values(1)
-        col_map = {h.strip(): i + 1 for i, h in enumerate(headers)}
-        oid_col = col_map.get("Order ID", 2)
-        col_vals = ws.col_values(oid_col)
-        row = None
-        for i, v in enumerate(col_vals):
-            if str(v).strip() == str(order_id).strip():
-                row = i + 1
-                break
-        if not row:
-            return False
-        updates["Last Updated"] = _now()
-        for col_name, value in updates.items():
-            col_num = col_map.get(col_name)
-            if col_num:
-                ws.update_cell(row, col_num, str(value) if value is not None else "")
-        return True
-    except Exception as e:
-        print(f"update_payment error: {e}")
-        return False
+def update_payment(order_id: str, updates: dict) -> UpdateResult:
+    return update_order_records(order_id, {"Payments": updates})
 
 
 # ── Packing QC ────────────────────────────────────────────────────────────────
@@ -272,34 +292,8 @@ def get_packing_qc() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def update_packing_qc(order_id: str, updates: dict) -> bool:
-    try:
-        ws      = _ws("Packing QC")
-        headers = ws.row_values(1)
-        col_map = {h.strip(): i + 1 for i, h in enumerate(headers)}
-        oid_col_num = None
-        for h, n in col_map.items():
-            if "order" in h.lower() and "id" in h.lower():
-                oid_col_num = n
-                break
-        if not oid_col_num:
-            return False
-        col_vals = ws.col_values(oid_col_num)
-        row = None
-        for i, v in enumerate(col_vals):
-            if str(v).strip() == str(order_id).strip():
-                row = i + 1
-                break
-        if not row:
-            return False
-        for col_name, value in updates.items():
-            col_num = col_map.get(col_name)
-            if col_num:
-                ws.update_cell(row, col_num, str(value) if value is not None else "")
-        return True
-    except Exception as e:
-        print(f"update_packing_qc error: {e}")
-        return False
+def update_packing_qc(order_id: str, updates: dict) -> UpdateResult:
+    return update_order_records(order_id, {"Packing QC": updates})
 
 
 # ── Courier Tracking ──────────────────────────────────────────────────────────
@@ -317,27 +311,8 @@ def get_courier_tracking() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def update_courier(order_id: str, updates: dict) -> bool:
-    try:
-        ws      = _ws("Courier Tracking")
-        headers = ws.row_values(1)
-        col_map = {h.strip(): i + 1 for i, h in enumerate(headers)}
-        col_vals = ws.col_values(col_map.get("Order ID", 2))
-        row = None
-        for i, v in enumerate(col_vals):
-            if str(v).strip() == str(order_id).strip():
-                row = i + 1
-                break
-        if not row:
-            return False
-        for col_name, value in updates.items():
-            col_num = col_map.get(col_name)
-            if col_num:
-                ws.update_cell(row, col_num, str(value) if value is not None else "")
-        return True
-    except Exception as e:
-        print(f"update_courier error: {e}")
-        return False
+def update_courier(order_id: str, updates: dict) -> UpdateResult:
+    return update_order_records(order_id, {"Courier Tracking": updates})
 
 
 # ── Product Catalog ───────────────────────────────────────────────────────────

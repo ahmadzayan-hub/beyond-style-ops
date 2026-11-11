@@ -9,11 +9,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import streamlit as st
 import pandas as pd
 from ops.config import (
-    ORDER_STAGES, STATUS_COLOR, ROLES, ROLE_COLORS,
+    ORDER_STAGES, STATUS_COLOR, ROLE_COLORS,
     GOLD, BLACK, BEIGE, LIGHT, status_badge
 )
+from ops.auth import require_access
 from ops.sheets import get_master_orders, get_dashboard_counts
-from ops.role_gate import require_role, sidebar_sign_in
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -22,6 +22,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+role = require_access()
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown(f"""
@@ -108,7 +110,13 @@ with st.sidebar:
     st.markdown("## ✦ Beyond Style UAE")
     st.markdown("---")
 
-    sidebar_sign_in(ROLE_COLORS, GOLD)
+    st.caption("Your assigned role")
+    role_c = ROLE_COLORS.get(role, GOLD)
+    st.markdown(
+        f'<div style="background:{role_c};color:#fff;padding:6px 12px;'
+        f'border-radius:6px;font-size:12px;font-weight:600;text-align:center">'
+        f'{role}</div>', unsafe_allow_html=True
+    )
 
     st.markdown("---")
     if st.button("🔄 Refresh Data"):
@@ -129,9 +137,6 @@ with st.sidebar:
     st.markdown('<p style="font-size:11px;color:#888">Beyond Style UAE<br>+971 55 155 6991<br>beyondstyle.ae</p>',
                 unsafe_allow_html=True)
 
-
-# ── Access: nothing below loads until the session proves a role ──────────────
-role = require_role()
 
 # ── Load data ─────────────────────────────────────────────────────────────────
 @st.cache_data(ttl=60)

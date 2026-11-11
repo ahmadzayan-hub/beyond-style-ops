@@ -4,16 +4,17 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 import streamlit as st
-from ops.role_gate import require_role
 import pandas as pd
 from ops.config import GOLD, BLACK, LIGHT, STATUS_COLOR
+from ops.ui import show_update_error
+from ops.auth import require_access
 from ops.sheets import get_master_orders, update_master_order
 
 st.set_page_config(page_title="Labels · Beyond Style", page_icon="🏷️", layout="wide")
 st.markdown(f"<style>html,body,[class*='css']{{font-family:'Inter',sans-serif;background:{LIGHT}}}</style>",
             unsafe_allow_html=True)
 
-role = require_role()
+role = require_access()
 can_edit = role in ["Owner / Admin", "Packing / Sharon"]
 
 st.title("🏷️ Shipment Labels")
@@ -149,7 +150,7 @@ if can_edit:
                 st.cache_data.clear()
                 st.rerun()
             else:
-                st.error("Update failed.")
+                show_update_error(ok)
 
     if col2.button("🚚 Mark Courier Booked"):
         ok = update_master_order(sel_id, {
@@ -161,6 +162,6 @@ if can_edit:
             st.cache_data.clear()
             st.rerun()
         else:
-            st.error("Update failed.")
+            show_update_error(ok)
 else:
     st.caption("🔒 Owner / Admin or Packing / Sharon role required to update labels.")
