@@ -29,3 +29,4 @@ jobs:
           python tests/test_delivery_status.py
           python -m unittest discover -s tests -p "test_auth*.py" -v
           python -m unittest discover -s tests -p "test_integrity*.py" -v
+          python -m unittest discover -s tests -p "test_execution_io.py" -v
