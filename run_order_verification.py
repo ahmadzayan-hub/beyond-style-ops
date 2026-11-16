@@ -99,8 +99,9 @@ def run_order_verification(order: dict) -> dict:
     email_result = send_verification_email(order, result)
 
     if email_result["sent"]:
-        mode = "(dry run)" if email_result["dry_run"] else ""
-        print(f"  Email sent to {email_result['recipient']} {mode}")
+        print(f"  Email accepted by the mail server for {email_result['recipient']}")
+    elif email_result.get("status") == "simulated":
+        print(f"  Email SIMULATED (dry run): nothing was sent to {email_result['recipient']}")
     else:
         print(f"  Email FAILED: {email_result['error']}")
         errors.append(f"email: {email_result['error']}")
@@ -125,7 +126,7 @@ def run_order_verification(order: dict) -> dict:
 
     # ── Step 4: Send WhatsApp (Phase 2 — gated) ───────────────────────────────
     wa_sent    = False
-    wa_dry_run = True
+    wa_status  = "not_attempted"
     wa_msg_id  = ""
 
     if _WHATSAPP_ENABLED:
@@ -138,14 +139,15 @@ def run_order_verification(order: dict) -> dict:
             from send_whatsapp_message import send_whatsapp_message
             wa_result  = send_whatsapp_message(intl_phone, message)
             wa_sent    = wa_result["sent"]
-            wa_dry_run = wa_result["dry_run"]
+            wa_status  = wa_result.get("status", "")
             wa_msg_id  = wa_result.get("message_id", "")
 
-            if wa_sent:
-                mode = "(dry run)" if wa_dry_run else ""
-                print(f"  WhatsApp sent to +{intl_phone} {mode}")
+            if wa_status == "simulated":
+                print(f"  WhatsApp SIMULATED (dry run): nothing was sent to +{intl_phone}")
+            elif wa_sent:
+                print(f"  WhatsApp accepted by Meta for +{intl_phone} (not proof of delivery)")
                 # Update sheet with WhatsApp send info
-                if sheet_row and not wa_dry_run:
+                if sheet_row:
                     try:
                         from write_to_sheets import write_order_result
                         write_order_result(order, result, send_result=wa_result,
@@ -164,10 +166,9 @@ def run_order_verification(order: dict) -> dict:
     print(f"\n{'='*60}")
     print(f"  PIPELINE COMPLETE")
     print(f"  Status:        {status}")
-    print(f"  Email:         {'sent' if email_result['sent'] else 'FAILED'}"
-          f"{' (dry run)' if email_result.get('dry_run') else ''}")
+    print(f"  Email:         {email_result.get('status', 'sent' if email_result['sent'] else 'failed')}")
     print(f"  Sheet row:     {sheet_row or 'not written'}")
-    print(f"  WhatsApp:      {'sent' if wa_sent else 'pending Phase 2'}")
+    print(f"  WhatsApp:      {wa_status}")
     if errors:
         print(f"  Errors:        {'; '.join(errors)}")
     print(f"{'='*60}\n")
@@ -179,6 +180,8 @@ def run_order_verification(order: dict) -> dict:
         "email_sent":    email_result["sent"],
         "email_dry_run": email_result.get("dry_run", True),
         "whatsapp_sent": wa_sent,
+        "whatsapp_status": wa_status,
+        "email_status":  email_result.get("status", ""),
         "sheet_row":     sheet_row,
         "sheet_action":  sheet_action,
         "errors":        errors,

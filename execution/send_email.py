@@ -31,12 +31,14 @@ try:
 except ImportError:
     pass
 
+from delivery_status import FAILED, PROVIDER_ACCEPTED, SIMULATED, force_dry_run
+
 _HOST     = os.getenv("SMTP_HOST", "")
 _PORT     = int(os.getenv("SMTP_PORT", "587"))
 _USER     = os.getenv("SMTP_USERNAME", "")
 _PASS     = os.getenv("SMTP_PASSWORD", "")
 _TO       = os.getenv("ALERT_EMAIL", "info@beyondstyle.ae")
-_LIVE     = bool(_HOST and _USER and _PASS)
+_LIVE     = bool(_HOST and _USER and _PASS) and not force_dry_run()
 
 
 # ── Status colour mapping ─────────────────────────────────────────────────────
@@ -222,7 +224,8 @@ def send_verification_email(order: dict, result: dict) -> dict:
     Send the verification report email.
 
     Returns:
-        sent:      bool
+        status:    simulated | provider_accepted | failed (see delivery_status.py)
+        sent:      bool  - True only when the SMTP server accepted the message
         dry_run:   bool
         recipient: str
         error:     str
@@ -236,7 +239,7 @@ def send_verification_email(order: dict, result: dict) -> dict:
         print(f"[DRY RUN] EMAIL to {_TO}")
         print(f"Subject: {subject}")
         print(plain[:500] + ("..." if len(plain) > 500 else ""))
-        return {"sent": True, "dry_run": True, "recipient": _TO,
+        return {"status": SIMULATED, "sent": False, "dry_run": True, "recipient": _TO,
                 "error": "", "timestamp": ts}
 
     try:
@@ -263,11 +266,11 @@ def send_verification_email(order: dict, result: dict) -> dict:
                 server.login(_USER, _PASS)
                 server.sendmail(_USER, _TO, msg.as_string())
 
-        return {"sent": True, "dry_run": False, "recipient": _TO,
+        return {"status": PROVIDER_ACCEPTED, "sent": True, "dry_run": False, "recipient": _TO,
                 "error": "", "timestamp": ts}
 
     except Exception as e:
-        return {"sent": False, "dry_run": False, "recipient": _TO,
+        return {"status": FAILED, "sent": False, "dry_run": False, "recipient": _TO,
                 "error": str(e), "timestamp": ts}
 
 

@@ -145,6 +145,25 @@ class WriteOrderResultTests(unittest.TestCase):
         self.assertEqual(row[col["Meta Message ID"] - 1], "wamid.X")
         self.assertTrue(wts.write_order_result(ORDER, RESULT)["ok"])
 
+    def test_a_dry_run_is_recorded_as_dry_run_with_no_time_or_message_id(self):
+        send_result = {"status": "simulated", "sent": False, "dry_run": True,
+                       "message_id": "DRY_RUN", "timestamp": "2026-11-11 03:00 UTC"}
+        wts.write_order_result(ORDER, RESULT, send_result=send_result)
+        col = wts._build_col_index(self.ws)
+        row = self.ws.appended[0]
+        self.assertEqual(row[col["WhatsApp Message Sent"] - 1], "Dry run")
+        self.assertEqual(row[col["WhatsApp Sent Time"] - 1], "")
+        self.assertEqual(row[col["Meta Message ID"] - 1], "")
+
+    def test_a_failed_send_is_recorded_as_no(self):
+        send_result = {"status": "failed", "sent": False, "dry_run": False,
+                       "message_id": "", "timestamp": "2026-11-11 03:00 UTC"}
+        wts.write_order_result(ORDER, RESULT, send_result=send_result)
+        col = wts._build_col_index(self.ws)
+        row = self.ws.appended[0]
+        self.assertEqual(row[col["WhatsApp Message Sent"] - 1], "No")
+        self.assertEqual(row[col["WhatsApp Sent Time"] - 1], "")
+
     def test_matching_order_id_updates_in_place_instead_of_appending(self):
         col = wts._build_col_index(self.ws)
         existing = [""] * len(HEADER)
@@ -198,12 +217,16 @@ class SendWhatsappMessageTests(unittest.TestCase):
     def test_invalid_phone_is_rejected_before_any_send_attempt(self):
         r = swm.send_whatsapp_message("not-a-number", "hello")
         self.assertFalse(r["sent"])
+        self.assertEqual(r["status"], "invalid")
         self.assertIn("Invalid international phone", r["error"])
 
-    def test_dry_run_when_not_live_returns_sent_true_without_a_network_call(self):
+    def test_dry_run_when_not_live_is_simulated_not_sent_and_makes_no_network_call(self):
         swm._LIVE = False
-        r = swm.send_whatsapp_message("971501234567", "Order confirmed.")
-        self.assertTrue(r["sent"])
+        with patch("urllib.request.urlopen") as net:
+            r = swm.send_whatsapp_message("971501234567", "Order confirmed.")
+        net.assert_not_called()
+        self.assertFalse(r["sent"])
+        self.assertEqual(r["status"], "simulated")
         self.assertTrue(r["dry_run"])
         self.assertEqual(r["message_id"], "DRY_RUN")
         self.assertEqual(r["error"], "")
@@ -217,6 +240,7 @@ class SendWhatsappMessageTests(unittest.TestCase):
         with patch("urllib.request.urlopen", return_value=fake_resp):
             r = swm.send_whatsapp_message("971501234567", "Order confirmed.")
         self.assertTrue(r["sent"])
+        self.assertEqual(r["status"], "provider_accepted")
         self.assertFalse(r["dry_run"])
         self.assertEqual(r["message_id"], "wamid.ABC")
 
@@ -225,6 +249,7 @@ class SendWhatsappMessageTests(unittest.TestCase):
         with patch("urllib.request.urlopen", side_effect=OSError("network unreachable")):
             r = swm.send_whatsapp_message("971501234567", "Order confirmed.")
         self.assertFalse(r["sent"])
+        self.assertEqual(r["status"], "failed")
         self.assertIn("network unreachable", r["error"])
 
 

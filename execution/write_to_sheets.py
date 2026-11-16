@@ -25,6 +25,7 @@ Run connection test:
 import os
 import json
 from datetime import datetime
+from delivery_status import sheet_fields
 
 try:
     from dotenv import load_dotenv
@@ -247,12 +248,11 @@ def write_order_result(
     }
 
     if send_result:
-        field_values[col_map["whatsapp_message_sent"]] = (
-            "Yes" if send_result.get("sent") else "No"
-        )
+        fields = sheet_fields(send_result)
+        field_values[col_map["whatsapp_message_sent"]] = fields["sent_label"]
         field_values[col_map["whatsapp_message_type"]] = result.get("message_type", "")
-        field_values[col_map["whatsapp_sent_time"]]    = send_result.get("timestamp", "")
-        field_values[col_map["meta_message_id"]]       = send_result.get("message_id", "")
+        field_values[col_map["whatsapp_sent_time"]]    = fields["sent_time"]
+        field_values[col_map["meta_message_id"]]       = fields["message_id"]
 
     # Try to update existing row
     target_row = _find_order_row(ws, col_index, order_id) if order_id else None
