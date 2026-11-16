@@ -25,3 +25,6 @@ Thumbs.db
 # Data / output
 data/*.csv
 data/*.xlsx
+
+# Sheet write reservations
+.runtime/

@@ -16,6 +16,9 @@ import sys
 import unittest
 from copy import deepcopy
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event
 from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "execution"))
@@ -40,6 +43,7 @@ class FakeWorksheet:
             self._rows[wts.DATA_START + offset] = list(row)
         self.updates = []
         self.appended = []
+        self.input_options = []
 
     def row_values(self, row):
         return list(self._rows.get(row, []))
@@ -61,10 +65,23 @@ class FakeWorksheet:
             r.append("")
         r[col - 1] = value
 
+    def batch_update(self, updates, value_input_option=None):
+        self.input_options.append(value_input_option)
+        for update in updates:
+            cell = update["range"]
+            letters = cell.rstrip("0123456789")
+            row = int(cell[len(letters):])
+            column = 0
+            for char in letters:
+                column = column * 26 + ord(char) - ord("A") + 1
+            self.update_cell(row, column, update["values"][0][0])
+
     def append_row(self, row, value_input_option=None):
+        self.input_options.append(value_input_option)
         self.appended.append(list(row))
         new_row_num = (max(self._rows) if self._rows else 0) + 1
         self._rows[new_row_num] = list(row)
+        return {"updates": {"updatedRange": f"'Master Orders'!A{new_row_num}:Z{new_row_num}"}}
 
     def get_all_values(self):
         max_row = max(self._rows) if self._rows else 0
@@ -109,6 +126,11 @@ class BuildColIndexTests(unittest.TestCase):
 
 class WriteOrderResultTests(unittest.TestCase):
     def setUp(self):
+        temp = TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        settings = patch.dict("os.environ", {"GOOGLE_SHEETS_WRITE_STATE": str(Path(temp.name) / "writes.sqlite3")})
+        settings.start()
+        self.addCleanup(settings.stop)
         self.ws = FakeWorksheet()
         self.patcher = patch.object(wts, "_open_sheet", return_value=self.ws)
         self.patcher.start()
@@ -184,6 +206,52 @@ class WriteOrderResultTests(unittest.TestCase):
     def test_unmatched_order_id_appends_a_new_row(self):
         out = wts.write_order_result(ORDER, RESULT, order_id="BSO-9999")
         self.assertEqual(out["action"], "appended")
+
+    def test_keyed_append_and_update_store_untrusted_text_literally(self):
+        order = {**ORDER, "customer_name": "=1+1", "address": "+Synthetic"}
+        self.assertTrue(wts.write_order_result(order, RESULT, order_id="BS-KEY")["ok"])
+        self.assertEqual(wts.write_order_result(order, RESULT, order_id="BS-KEY")["action"], "updated")
+        row = self.ws.row_values(wts.DATA_START)
+        self.assertEqual(row[HEADER.index("Order ID")], "BS-KEY")
+        self.assertEqual(row[HEADER.index("Customer Name")], "=1+1")
+        self.assertEqual(self.ws.input_options, ["RAW", "RAW"])
+
+    def test_concurrent_retry_cannot_send_a_second_append(self):
+        entered, release = Event(), Event()
+        append = self.ws.append_row
+
+        def blocking_append(*args, **kwargs):
+            entered.set()
+            if not release.wait(4):
+                raise TimeoutError()
+            return append(*args, **kwargs)
+
+        with patch.object(self.ws, "append_row", side_effect=blocking_append):
+            with ThreadPoolExecutor(2) as pool:
+                first = pool.submit(wts.write_order_result, ORDER, RESULT, order_id="BS-RACE")
+                try:
+                    self.assertTrue(entered.wait(4))
+                    second = pool.submit(wts.write_order_result, ORDER, RESULT, order_id="BS-RACE")
+                    self.assertTrue(second.result(timeout=4)["uncertain"])
+                finally:
+                    release.set()
+                self.assertTrue(first.result(timeout=4)["ok"])
+        self.assertEqual(wts.write_order_result(ORDER, RESULT, order_id="BS-RACE")["action"], "updated")
+        self.assertEqual(len(self.ws.appended), 1)
+
+    def test_lost_append_response_is_reconciled_by_order_id(self):
+        append = self.ws.append_row
+
+        def loses_response(*args, **kwargs):
+            append(*args, **kwargs)
+            raise TimeoutError()
+
+        with patch.object(self.ws, "append_row", side_effect=loses_response):
+            first = wts.write_order_result(ORDER, RESULT, order_id="BS-LOST")
+        self.assertTrue(first["uncertain"])
+        replay = wts.write_order_result(ORDER, RESULT, order_id="BS-LOST")
+        self.assertEqual(replay["action"], "updated")
+        self.assertEqual(len(self.ws.appended), 1)
 
     def test_connection_failure_is_reported_not_raised(self):
         with patch.object(wts, "_open_sheet", side_effect=RuntimeError("GOOGLE_SHEETS_ID is not set in .env.")):
