@@ -24,7 +24,11 @@ Run connection test:
 
 import os
 import json
-from datetime import datetime
+import re
+import sqlite3
+from contextlib import closing
+from datetime import datetime, timezone
+from pathlib import Path
 from delivery_status import sheet_fields
 
 try:
@@ -171,12 +175,11 @@ def _find_order_row(ws, col_index: dict, order_id: str) -> int:
     if not order_id_col or not order_id:
         return None
 
-    col_letter = _col_num_to_letter(order_id_col)
-    cell_list = ws.findall(str(order_id), in_column=order_id_col)
-    for cell in cell_list:
-        if cell.row >= DATA_START:
-            return cell.row
-    return None
+    matches = [cell.row for cell in ws.findall(str(order_id), in_column=order_id_col)
+               if cell.row >= DATA_START]
+    if len(matches) > 1:
+        raise ValueError("The order ID is duplicated in Master Orders.")
+    return matches[0] if matches else None
 
 
 def _col_num_to_letter(n: int) -> str:
@@ -186,6 +189,65 @@ def _col_num_to_letter(n: int) -> str:
         n, remainder = divmod(n - 1, 26)
         result = chr(65 + remainder) + result
     return result
+
+
+def _write_fields(ws, column_index, fields, order_id, row=None):
+    if row is not None:
+        updates = [
+            {"range": f"{_col_num_to_letter(column_index[name])}{row}", "values": [[value]]}
+            for name, value in fields.items() if name in column_index
+        ]
+        ws.batch_update(updates, value_input_option="RAW")
+        return {"ok": True, "row": row, "action": "updated", "reason": ""}
+
+    new_row = [""] * max(column_index.values())
+    for name, value in fields.items():
+        if name in column_index:
+            new_row[column_index[name] - 1] = value
+    response = ws.append_row(new_row, value_input_option="RAW")
+    updated_range = response.get("updates", {}).get("updatedRange", "")
+    match = re.search(r"!\$?[A-Z]+\$?(\d+)(?::|$)", updated_range)
+    appended_row = int(match[1]) if match else None
+    if appended_row is None and order_id:
+        appended_row = _find_order_row(ws, column_index, order_id)
+    return {"ok": True, "row": appended_row, "action": "appended", "reason": ""}
+
+
+def _write_with_order_key(ws, column_index, fields, order_id):
+    if not column_index.get("Order ID"):
+        raise ValueError("Master Orders is missing the Order ID column.")
+    lock_path = Path(os.environ.get(
+        "GOOGLE_SHEETS_WRITE_STATE", str(Path(_ROOT) / ".runtime" / "sheet-writes.sqlite3")
+    ))
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    key = (GOOGLE_SHEETS_ID, order_id)
+    with closing(sqlite3.connect(lock_path, timeout=10)) as state:
+        state.execute("""
+            CREATE TABLE IF NOT EXISTS pending_append (
+                sheet_id TEXT NOT NULL, order_id TEXT NOT NULL,
+                PRIMARY KEY (sheet_id, order_id)
+            )
+        """)
+        with state:
+            state.execute("BEGIN IMMEDIATE")
+            row = _find_order_row(ws, column_index, order_id)
+            if row is not None:
+                written = _write_fields(ws, column_index, fields, order_id, row)
+                state.execute("DELETE FROM pending_append WHERE sheet_id=? AND order_id=?", key)
+                return written
+            reserved = state.execute("INSERT OR IGNORE INTO pending_append VALUES (?, ?)", key)
+            if not reserved.rowcount:
+                return {"ok": False, "row": None, "action": "", "uncertain": True,
+                        "reason": "An earlier append is unresolved. Check Master Orders before retrying."}
+        # Keep the reservation across a lost response or process restart.
+        try:
+            written = _write_fields(ws, column_index, {**fields, "Order ID": order_id}, order_id)
+        except Exception:
+            return {"ok": False, "row": None, "action": "", "uncertain": True,
+                    "reason": "The append was sent but could not be verified. Check Master Orders before retrying."}
+        with state:
+            state.execute("DELETE FROM pending_append WHERE sheet_id=? AND order_id=?", key)
+        return written
 
 
 def write_order_result(
@@ -219,7 +281,7 @@ def write_order_result(
     except Exception as e:
         return {"ok": False, "row": None, "action": "", "reason": str(e)}
 
-    now          = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    now          = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     phone_info   = result.get("phone_normalized", {})
 
     # Build the field→value mapping using the column map
@@ -254,33 +316,19 @@ def write_order_result(
         field_values[col_map["whatsapp_sent_time"]]    = fields["sent_time"]
         field_values[col_map["meta_message_id"]]       = fields["message_id"]
 
-    # Try to update existing row
-    target_row = _find_order_row(ws, col_index, order_id) if order_id else None
+    protected = {col_map.get("owner_notes"), "Order ID"}
+    fields = {key: "" if value is None else value for key, value in field_values.items()
+              if key not in protected}
+    key = str(order_id or order.get("order_id") or "").strip()
+    if not col_index:
+        return {"ok": False, "row": None, "action": "", "reason": "Master Orders has no column headers."}
+    try:
+        if key:
+            return _write_with_order_key(ws, col_index, fields, key)
+        return _write_fields(ws, col_index, fields, None)
+    except (ValueError, OSError, sqlite3.Error) as error:
+        return {"ok": False, "row": None, "action": "", "reason": str(error)}
 
-    if target_row:
-        # update only the cells we manage — never touch Internal Notes
-        protected = {col_map.get("owner_notes")}
-        for col_name, value in field_values.items():
-            if col_name in protected:
-                continue
-            col_num = col_index.get(col_name)
-            if col_num:
-                ws.update_cell(target_row, col_num, str(value) if value != "" else "")
-        return {"ok": True, "row": target_row, "action": "updated", "reason": ""}
-
-    # Append new row
-    # Build a full-width row list in column order
-    max_col = max(col_index.values()) if col_index else 0
-    new_row  = [""] * max_col
-    for col_name, value in field_values.items():
-        col_num = col_index.get(col_name)
-        if col_num and col_num <= max_col:
-            new_row[col_num - 1] = str(value) if value != "" else ""
-
-    ws.append_row(new_row, value_input_option="USER_ENTERED")
-    all_values   = ws.get_all_values()
-    appended_row = len(all_values)    # last row written
-    return {"ok": True, "row": appended_row, "action": "appended", "reason": ""}
 
 
 def test_connection() -> dict:

@@ -47,10 +47,15 @@ Never rename or delete existing columns without owner approval.
 - `write_order_result(order, result, send_result, order_id)` — upsert a row
 - `test_connection()` — smoke test; run directly: `python execution/write_to_sheets.py`
 
-Row matching: if `order_id` is provided and found in column "Order ID" on or after
-row 4, the existing row is updated in-place. Otherwise a new row is appended.
+A keyed order keeps its Order ID on every append. Existing orders are updated in one batch.
+Customer values are written as raw values, including text that starts with a formula character.
+Internal Notes remain outside the batch.
 
-The `Internal Notes` column is never overwritten (protected list in the script).
+Use the same local write-state database for every verifier sharing a workbook on a host.
+It defaults to `.runtime/sheet-writes.sqlite3` and can be set with `GOOGLE_SHEETS_WRITE_STATE`.
+An uncertain append is reconciled by checking the live row for its Order ID on the next attempt.
+If the row is still absent, the writer keeps the reservation for operator reconciliation.
+Separate hosts require a shared authoritative order store before running concurrent writers.
 
 ## Status
 
